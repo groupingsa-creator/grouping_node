@@ -15,7 +15,7 @@ const nodemailer = require("nodemailer");
      
        const user = await User.findOne({_id: userId}); 
      
-       const tokens = user.fcmTokens ? user.fcmTokens : []; 
+       const tokens = user.fcmToken && user.fcmToken.length > 0 ? user.fcmTokens : []; 
      
        const value = tokens.filter(item => (item.fcmToken === fcmToken && item.deviceId === deviceId)); 
        let newToken; 
@@ -23,18 +23,20 @@ const nodemailer = require("nodemailer");
        if(value.length === 0){
          
          newToken = {deviceId, fcmToken}; 
-         tokens
+         tokens.push(newToken);
          
        }else{
          
            //if(value[0].fcmToken)
-           const leToken = tokens.filter(item => item.deviceId === deviceId)[0]; 
+           const leToken = tokens.find(item => item.deviceId === deviceId); 
          
            if(leToken && leToken.fcmToken !== fcmToken){
              
-               
+               leToken.fcmToken = fcmToken;
            }
        }
+     
+       await User.updateOne({_id: userId}, {$set: {fcmToken: tokens}}); 
    
      
      

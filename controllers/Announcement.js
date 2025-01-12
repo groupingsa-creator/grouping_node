@@ -1254,7 +1254,7 @@ exports.toggleActiveStatus = async (req, res) => {
       
       const user = await User.findOne({_id: announcement.userId}); 
       
-      const tokens = user.fcmTokens; 
+      const tokens = user.fcmToken; 
       
       for(let token of tokens){
         
