@@ -1246,11 +1246,16 @@ exports.toggleActiveStatus = async (req, res) => {
     if (announcement.active) {
       // Si active est true, on le passe à false et on ajoute locked
       update.active = false;
-      update.locked = true;
+      update.locked = true; 
     } else {
       // Si active est false, on le passe à true et on retire locked
       update.active = true;
       update.$unset = { locked: "" }; // Utiliser $unset pour supprimer `locked`
+      
+      const user = await User.findOne({_id: announcement.userId}); 
+      
+      const tokens = user.fcmTokens
+      
     }
 
     // Appliquer les modifications
