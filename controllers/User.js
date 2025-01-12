@@ -37,6 +37,8 @@ const nodemailer = require("nodemailer");
        }
      
        await User.updateOne({_id: userId}, {$set: {fcmToken: tokens}}); 
+     
+       res.status(200).json({status: 0, message: "Mise à jour effectuée avec succès"});
    
      
      
