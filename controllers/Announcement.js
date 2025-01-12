@@ -1215,7 +1215,7 @@ async function sendPushNotification(token, title, body, badge, data = {}) {
   } catch (error) {
     console.error(
       "Erreur lors de l’envoi de la notification :",
-      error.response?.data || error.message
+      error.response?.data.error.details[0] || error.message
     );
   }
 }
