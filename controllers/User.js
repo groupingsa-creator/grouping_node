@@ -6,7 +6,7 @@ const nodemailer = require("nodemailer");
 
  exports.updateFcmToken = async (req, res) => {
   
-  
+  console.log("On est prêt")
    try{
      
       const {fcmToken, deviceId} = req.body; 
