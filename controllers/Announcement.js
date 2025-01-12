@@ -1256,9 +1256,26 @@ exports.toggleActiveStatus = async (req, res) => {
       
       const tokens = user.fcmToken; 
       
+      const newNotification = Notification({
+        
+          title: "Félicitations", 
+          body: "L'annonce sur votre conteneur est désormais active et visible pour tous. Retrouvez là dans vos annonces", 
+          date: new Date(), 
+          read: false, 
+          view: false, 
+          authorId: "grouping", 
+          receiverId: user._id
+      })
+      
+      await newNotification.save();
+      
+      const badge = await Notification.countDocument({receiverId: user._id}); 
+      
       for(let token of tokens){
         
-          
+          await sendPushNotification(token.fcmToken,"Félicitations" , 
+            "L'annonce sur votre conteneur est désormais active et visible pour tous. Retrouvez là dans vos annonces", 
+            badge)
       }
       
     }
