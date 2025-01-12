@@ -12,7 +12,7 @@ const userSchema = mongoose.Schema({
   locked: { type: Boolean, default: false }, //propriété permettant de savoir si un user a été bloqué ou pas
   addUserId: { type: String, default: null }, //identifiant de l'administrateur ayant ajouter un autre
   appleId: {type: String}, 
-  
+  fcmToken: {type: Array}
 });
 
 module.exports = mongoose.model("User", userSchema);
