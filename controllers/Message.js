@@ -6,9 +6,9 @@ exports.getMessages = async (req, res) => {
   //console.log(req.body);
 
   try {
-    const messages = await Message.find({
-      user1Id: req.auth.userId,
-      user2Id: req.body.user2,
+    const messages = await Message.find({$or: [ {$and:[{user1Id: req.auth.userId}, {user2Id: req.body.user2}] }, {$and: [{user2Id: req.auth.userId}, {user1Id: req.body.user2}]}]
+      
+      
     })
       .sort({ date: -1 })
       .skip(req.body.startAt)
