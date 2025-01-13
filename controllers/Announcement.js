@@ -831,6 +831,8 @@ exports.addAnnouncement = (req, res) => {
 
     // Convertir dateOfDeparture en objet Date
     const dateOfDeparture = new Date(req.body.dateOfDeparture);
+    
+    console.log(dateOfDeparture);
 
     const announcement = new Announcement({
       startCity: req.body.startCity,
