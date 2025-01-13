@@ -98,6 +98,7 @@ io.on("connection", (socket) => {
         temporaryMessage.status = "sent";
         temporaryMessage._id = savedMessage._id;
         io.to(receiverSocketId).emit("newMessageNotification", {
+          //const roomId = [user.uid, user1._id].sort().join("-");
           senderId: socket.userId,
           receiverId: savedMessage.user2Id,
           message: temporaryMessage,
