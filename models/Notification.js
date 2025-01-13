@@ -4,7 +4,7 @@ const mongoose =  require("mongoose");
 const notificationSchema = mongoose.Schema({
   
     receiverId: {type: String}, 
-    author_id: {type: String}, 
+    authorId: {type: String}, 
     title: {type: String}, 
     body: {type: String}, 
     date: {type: Date}, 
