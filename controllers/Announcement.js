@@ -10,6 +10,9 @@ const fs = require("fs");
 const http = require("https");
 const axios = require("axios");
 const Notification = require("../models/Notification")
+const Search = require("../models/Search"); 
+
+
 
 exports.avoirLesAnnonces = async (req, res) => {
   const startAt = req.body.startAt ? req.body.startAt : 0;
@@ -1028,7 +1031,16 @@ exports.annoncesRecherche = async (req, res) => {
     
     if(annonces.length === 0){
       
-        
+        const newSearch = Search({
+           startCity: req.body.start,
+            endCity: req.body.end,
+            dateOfDeparture: {
+              $gte: startDate,
+              $lt: endDate,
+            },
+            status: req.body.type,
+            
+        })
     }
 
     res.status(200).json({
