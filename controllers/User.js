@@ -24,6 +24,8 @@ const nodemailer = require("nodemailer");
      
        let newToken; 
      
+       
+     
        if(value.length === 0){
          
          newToken = {deviceId, fcmToken}; 
