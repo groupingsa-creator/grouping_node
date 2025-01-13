@@ -29,13 +29,14 @@ const nodemailer = require("nodemailer");
          newToken = {deviceId, fcmToken}; 
          tokens.push(newToken);
          
+         
        }else{
          
            //if(value[0].fcmToken)
            const leToken = tokens.find(item => item.deviceId === deviceId); 
          
            if(leToken && leToken.fcmToken !== fcmToken){
-             L8VRGP5688
+             
                leToken.fcmToken = fcmToken;
            }
        }
