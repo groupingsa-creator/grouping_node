@@ -18,11 +18,13 @@ exports.viewNotifications = async (req, res) => {
     
 }
 
-exports.getNotReadNotifications = (req, res) => {
+exports.getNotReadNotifications = async(req, res) => {
+    
+  
     
     try{
       
-      const badges = Notification.countDocuments({_id: req.auth.userId, read: false}); 
+      const badges = await Notification.countDocuments({receiverId: req.auth.userId, read: false}); 
       
       res.status(201).json({status: 0, badges});
       
