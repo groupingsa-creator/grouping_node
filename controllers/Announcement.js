@@ -1034,13 +1034,15 @@ exports.annoncesRecherche = async (req, res) => {
         const newSearch = Search({
            startCity: req.body.start,
             endCity: req.body.end,
-            dateOfDeparture: {
-              $gte: startDate,
-              $lt: endDate,
-            },
+            month,
+            year,
             status: req.body.type,
-            
+            userId: req.auth.userId, 
+            type: req.body.type, 
+            date: new Date()
         })
+        
+        await newSearch.save();
     }
 
     res.status(200).json({
