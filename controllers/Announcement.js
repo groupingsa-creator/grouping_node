@@ -761,7 +761,7 @@ exports.addAnnouncementWithPdf = async (req, res) => {
  
     
       
-  
+  console.log("month", new(dateOfDeparture) + 2)
     
   announcement.save().then(
     async (annoncee) => {
@@ -769,6 +769,7 @@ exports.addAnnouncementWithPdf = async (req, res) => {
   const search = await Search.findOne({startCity: req.body.startCity, endCity: req.body.endCity, type: "container",
           year: new(dateOfDeparture).getFullYear()}, {$or: [{month: new(dateOfDeparture) + 1}, {month: new(dateOfDeparture) + 2}]});
 
+      console.log("la recherche", search);
   if(search){
     
       const user = await User.findOne({_id: search.userId});
