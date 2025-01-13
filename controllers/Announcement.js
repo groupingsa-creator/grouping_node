@@ -766,34 +766,6 @@ exports.addAnnouncementWithPdf = async (req, res) => {
   announcement.save().then(
     async (annoncee) => {
       
-  const search = await Search.findOne({startCity: req.body.startCity, endCity: req.body.endCity, type: "container",
-          year: new Date(dateOfDeparture).getFullYear(), $or: [{month: new Date(dateOfDeparture).getMonth() + 1}, {month: new Date(dateOfDeparture).getMonth() + 2}]});
-
-      console.log("la recherche", search);
-      
-      
-  if(search){
-    
-      const user = await User.findOne({_id: search.userId});
-      const badge = await Notification.countDocuments({read: false, userId: user._id})
-      
-      const newNotif = Notification({
-        title: "Bonne nouvelle", 
-        body: "Un container correspondant à une de vos recherche a été trouvé", 
-        date: new Date(), 
-        read: false, 
-        view: false,
-        receiverId: user._id
-      })
-    
-      for(let token of user.fcmToken){
-        
-          await sendPushNotification("Bonne nouvelle", "Un container correspondant à une de vos recherche a été trouvé", badge, {annonceId: annoncee._id} )
-      
-      }
-    
-  }
-      
       res.status(201).json({ status: 0 });
     },
     (err) => {
@@ -881,7 +853,36 @@ exports.addAnnouncement = (req, res) => {
 
     announcement
       .save()
-      .then(() => {
+      .then(async (annoncee) => {
+      
+                const search = await Search.findOne({startCity: req.body.startCity, endCity: req.body.endCity, type: "kilos",
+          year: new Date(dateOfDeparture).getFullYear(), $or: [{month: new Date(dateOfDeparture).getMonth() + 1}, {month: new Date(dateOfDeparture).getMonth() + 2}]});
+
+      console.log("la recherche", search);
+      
+      
+  if(search){
+    
+      const userr = await User.findOne({_id: search.userId});
+      const badgee = await Notification.countDocuments({read: false, userId: userr._id})
+      
+      const newNotif = Notification({
+        title: "Bonne nouvelle", 
+        body: "Un container correspondant à une de vos recherche a été trouvé", 
+        date: new Date(), 
+        read: false, 
+        view: false,
+        receiverId: userr._id
+      })
+    
+      for(let tokennn of userr.fcmToken){
+        
+          await sendPushNotification(tokennn, "Bonne nouvelle", "Un container correspondant à une de vos recherche a été trouvé", badgee, {annonceId: annoncee._id} )
+      
+      }
+    
+  }
+        
         res.status(201).json({ status: 0 });
       })
       .catch((err) => {
@@ -1322,6 +1323,34 @@ exports.toggleActiveStatus = async (req, res) => {
       update.$unset = { locked: "" }; // Utiliser $unset pour supprimer `locked`
       
       const user = await User.findOne({_id: announcement.userId}); 
+      
+        const search = await Search.findOne({startCity: announcement.startCity, endCity: announcement.endCity, type: announcement.type,
+          year: new Date(announcement.dateOfDeparture).getFullYear(), $or: [{month: new Date(announcement.dateOfDeparture).getMonth() + 1}, {month: new Date(announcement.dateOfDeparture).getMonth() + 2}]});
+
+      console.log("la recherche", search);
+      
+      
+  if(search){
+    
+      const userr = await User.findOne({_id: search.userId});
+      const badgee = await Notification.countDocuments({read: false, userId: userr._id})
+      
+      const newNotif = Notification({
+        title: "Bonne nouvelle", 
+        body: "Un container correspondant à une de vos recherche a été trouvé", 
+        date: new Date(), 
+        read: false, 
+        view: false,
+        receiverId: userr._id
+      })
+    
+      for(let tokennn of userr.fcmToken){
+        
+          await sendPushNotification(tokennn, "Bonne nouvelle", "Un container correspondant à une de vos recherche a été trouvé", badgee, {annonceId: announcement._id} )
+      
+      }
+    
+  }
       
       const tokens = user.fcmToken; 
       
