@@ -8,7 +8,8 @@ const searchSchema = mongoose.Schema({
      year: {type: String}, 
      type: {type: String}, 
      userId: {type: String},
-     date: {type: Date}
+     date: {type: Date},
+     status: { type: Boolean, default: null },
     
 })
 

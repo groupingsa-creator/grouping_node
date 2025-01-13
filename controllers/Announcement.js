@@ -876,6 +876,8 @@ exports.addAnnouncement = (req, res) => {
         view: false,
         receiverId: userr._id
       })
+      
+    //  console.log()
     
       for(let tokennn of userr.fcmToken){
         
