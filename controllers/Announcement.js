@@ -776,6 +776,12 @@ exports.addAnnouncementWithPdf = async (req, res) => {
     
       const user = await User.findOne({_id: search.userId});
       const badge = await Notification.countDocuments({read: false, userId: user._id})
+      
+      const newNotif = Notification({
+        title: "Bonne nouvelle", 
+        body: "Un container correspondant à une de vos recherche a été trouvé", 
+        userId: user._id
+      })
     
       for(let token of user.fcmToken){
         
