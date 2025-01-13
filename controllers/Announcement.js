@@ -677,6 +677,9 @@ exports.addAnnouncementWithPdf = async (req, res) => {
   //console.log(draft);
 
   const dateOfDeparture = new Date(req.body.dateOfDeparture);
+    
+    console.log(req.body.dateOfDeparture);
+    
   // Conversion de coords en objet JSON
   const coords = req.body.coords ? JSON.parse(req.body.coords) : null;
 
@@ -693,7 +696,14 @@ exports.addAnnouncementWithPdf = async (req, res) => {
     active: false,
     coords: coords,
   });
+    
+  const search = await Search.findOne({startCity: req.body.startCity, endCity: req.body.endCity, year: new(dateOfDeparture).getFullYear()}, {$or: [{month: new(dateOfDeparture) + 1}, {month: new(dateOfDeparture) + 2}]});
 
+  if(search){
+    
+      
+  }
+    
   announcement.save().then(
     () => {
       res.status(201).json({ status: 0 });
