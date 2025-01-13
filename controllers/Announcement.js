@@ -1270,7 +1270,7 @@ exports.toggleActiveStatus = async (req, res) => {
       
       await newNotification.save();
       
-      const badge = await Notification.countDocuments({receiverId: user._id}); 
+      const badge = await Notification.countDocuments({receiverId: user._id, view: false}); 
       
       for(let token of tokens){
         
