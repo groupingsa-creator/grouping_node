@@ -24,6 +24,7 @@ router.get("/getconversionrate", auth, announcementCtrl.getConversionRate)
 router.post("/updateactivecontainer", auth, announcementCtrl.toggleActiveStatus); 
 router.post("/avoirlesannonces", announcementCtrl.avoirLesAnnonces);
 
+
 module.exports = router; 
 
 

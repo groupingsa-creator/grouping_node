@@ -770,6 +770,8 @@ exports.addAnnouncementWithPdf = async (req, res) => {
           year: new(dateOfDeparture).getFullYear()}, {$or: [{month: new(dateOfDeparture) + 1}, {month: new(dateOfDeparture) + 2}]});
 
       console.log("la recherche", search);
+      
+      
   if(search){
     
       const user = await User.findOne({_id: search.userId});
