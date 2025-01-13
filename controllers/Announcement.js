@@ -13,6 +13,67 @@ const Notification = require("../models/Notification")
 const Search = require("../models/Search"); 
 
 
+const MY_PROJECT_ID = "grouping-94f5a";
+const FCM_ENDPOINT = `https://fcm.googleapis.com/v1/projects/${MY_PROJECT_ID}/messages:send`;
+
+const SERVICE_ACCOUNT_KEY_FILE = "./my-service-account.json";
+
+async function getAccessToken() {
+  const auth = new GoogleAuth({
+    keyFile: SERVICE_ACCOUNT_KEY_FILE,
+    scopes: ["https://www.googleapis.com/auth/firebase.messaging"],
+  });
+
+  const accessToken = await auth.getAccessToken();
+  return accessToken;
+}
+
+async function sendPushNotification(token, title, body, badge, data = {}) {
+  try {
+    // Obtenir le jeton OAuth 2.0
+    const accessToken = await getAccessToken();
+
+    // Construire la charge utile du message
+    const messagePayload = {
+      validate_only: false,
+      message: {
+        token,
+        notification: {
+          title: title,
+          body: body,
+        },
+        apns: {
+          payload: {
+            aps: {
+              alert: {
+                title: title,
+                body: body,
+              },
+              badge,
+            },
+          },
+        },
+        data: data, // Charge utile personnalisée
+      },
+    };
+
+    // Envoyer la requête POST
+    const response = await axios.post(FCM_ENDPOINT, messagePayload, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    console.log("Notification envoyée avec succès :", response.data);
+  } catch (error) {
+    console.error(
+      "Erreur lors de l’envoi de la notification :",
+      error.response?.data.error.details[0] || error.message
+    );
+  }
+}
+
 
 exports.avoirLesAnnonces = async (req, res) => {
   const startAt = req.body.startAt ? req.body.startAt : 0;
@@ -697,15 +758,30 @@ exports.addAnnouncementWithPdf = async (req, res) => {
     coords: coords,
   });
     
-  const search = await Search.findOne({startCity: req.body.startCity, endCity: req.body.endCity, year: new(dateOfDeparture).getFullYear()}, {$or: [{month: new(dateOfDeparture) + 1}, {month: new(dateOfDeparture) + 2}]});
+ 
+    
+      
+  
+    
+  announcement.save().then(
+    async (annoncee) => {
+      
+  const search = await Search.findOne({startCity: req.body.startCity, endCity: req.body.endCity, type: "container",
+          year: new(dateOfDeparture).getFullYear()}, {$or: [{month: new(dateOfDeparture) + 1}, {month: new(dateOfDeparture) + 2}]});
 
   if(search){
     
-      
-  }
+      const user = await User.findOne({_id: search.userId});
+      const badge = await Notification.countDocuments({read: false, userId: user._id})
     
-  announcement.save().then(
-    () => {
+      for(let token of user.fcmToken){
+        
+          await sendPushNotification("Bonne nouvelle", "Un container correspondant à une de vos recherche a été trouvé", badge, {annonceId: annoncee._id} )
+      
+      }
+    
+  }
+      
       res.status(201).json({ status: 0 });
     },
     (err) => {
@@ -1198,66 +1274,7 @@ exports.getConversionRate = async (req, res) => {
   }
 };
 
-const MY_PROJECT_ID = "grouping-94f5a";
-const FCM_ENDPOINT = `https://fcm.googleapis.com/v1/projects/${MY_PROJECT_ID}/messages:send`;
 
-const SERVICE_ACCOUNT_KEY_FILE = "./my-service-account.json";
-
-async function getAccessToken() {
-  const auth = new GoogleAuth({
-    keyFile: SERVICE_ACCOUNT_KEY_FILE,
-    scopes: ["https://www.googleapis.com/auth/firebase.messaging"],
-  });
-
-  const accessToken = await auth.getAccessToken();
-  return accessToken;
-}
-
-async function sendPushNotification(token, title, body, badge, data = {}) {
-  try {
-    // Obtenir le jeton OAuth 2.0
-    const accessToken = await getAccessToken();
-
-    // Construire la charge utile du message
-    const messagePayload = {
-      validate_only: false,
-      message: {
-        token,
-        notification: {
-          title: title,
-          body: body,
-        },
-        apns: {
-          payload: {
-            aps: {
-              alert: {
-                title: title,
-                body: body,
-              },
-              badge,
-            },
-          },
-        },
-        data: data, // Charge utile personnalisée
-      },
-    };
-
-    // Envoyer la requête POST
-    const response = await axios.post(FCM_ENDPOINT, messagePayload, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
-    });
-
-    console.log("Notification envoyée avec succès :", response.data);
-  } catch (error) {
-    console.error(
-      "Erreur lors de l’envoi de la notification :",
-      error.response?.data.error.details[0] || error.message
-    );
-  }
-}
 
 exports.toggleActiveStatus = async (req, res) => {
   try {
