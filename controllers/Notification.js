@@ -1,7 +1,7 @@
 const Notification = require("../models/Notification"); 
 
 
-exports.readNotifications = async (req, res) => {
+exports.viewNotifications = async (req, res) => {
   
   try{
       
