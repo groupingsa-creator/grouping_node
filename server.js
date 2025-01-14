@@ -70,6 +70,8 @@ io.on("connection", (socket) => {
   socket.on("sendMessage", async ({ roomId1, receiverId, message, user1 }) => {
     const roomId = roomId1;
     const receiverSocketId = connectedUsers.get(receiverId);
+    
+   // console.log(message);
 
     const temporaryMessage = {
       text: message.text,
@@ -90,6 +92,13 @@ io.on("connection", (socket) => {
 
       // Mise à jour du statut du message
       io.to(roomId).emit("messageStatusUpdate", {
+        _id: savedMessage._id,
+        status: "sent",
+        text: savedMessage.text, 
+        user1Id: savedMessage.senderId
+      });
+      
+        socket.to(roomId).emit("messageStatusUpdate", {
         _id: savedMessage._id,
         status: "sent",
         text: savedMessage.text, 
