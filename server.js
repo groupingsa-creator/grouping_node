@@ -92,6 +92,8 @@ io.on("connection", (socket) => {
       io.to(roomId).emit("messageStatusUpdate", {
         _id: savedMessage._id,
         status: "sent",
+        text: savedMessage.text, 
+        user1Id: savedMessage.senderId
       });
 
       if (receiverSocketId) {
