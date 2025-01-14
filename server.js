@@ -98,7 +98,7 @@ io.on("connection", (socket) => {
         user1Id: savedMessage.senderId
       });
       
-        socket.to(roomId).emit("messageStatusUpdate", {
+      socket.to(roomId).emit("messageStatusUpdate", {
         _id: savedMessage._id,
         status: "sent",
         text: savedMessage.text, 
