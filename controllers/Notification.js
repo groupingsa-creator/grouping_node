@@ -107,7 +107,7 @@ exports.getNotifications = async (req, res) => {
         user: r.firstMessage.user,
         firstMessage: r.firstMessage,
       })),
-      stopIndex: endReached ? null : stopIndex,}); 
+      startAt: endReached ? null : stopIndex,}); 
       
     }catch(err){
       
