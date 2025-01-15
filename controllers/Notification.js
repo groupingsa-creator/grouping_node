@@ -50,10 +50,10 @@ exports.getNotifications = async (req, res) => {
       // Filtrer les messages selon les conditions user1Id ou user2Id
       {
         $match: {
-          $or: [
-            { user1Id: userId },
-            { user2Id: userId },
-          ],
+          
+           
+             user2Id: userId 
+          
         },
       },
 
@@ -69,7 +69,7 @@ exports.getNotifications = async (req, res) => {
           _id: {
             user: {
               $cond: [
-                { $eq: ["$user1Id", userId] },
+                { $eq: ["$user2Id", userId] },
                 "$user2Id",
                 "$user1Id",
               ],
