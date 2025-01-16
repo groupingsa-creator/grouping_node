@@ -449,6 +449,57 @@ exports.signUp = (req, res) => {
   );
 };
 
+exports.changePassword = (req, res) => {
+  User.findOne({ _id: req.auth.userId }).then(
+    (user) => {
+      if (!user) {
+        res.status(200).json({
+          status: 1,
+          message: "Utilisateur non trouvé",
+        });
+      }
+      else {
+        
+        // Vérifier si l'utilisateur est bloqué
+        if (user.locked) {
+          return res.status(200).json({
+            status: 1,
+            message: "Utilisateur non autorisé, compte bloqué",
+          });
+        }
+        bcrypt.compare(req.body.password, user.password).then(
+          (valid) => {
+            if (!valid) {
+              res.status(200).json({
+                status: 1,
+                message: "Ancien mot de passe incorrect",
+              });
+            } else {
+ 
+              
+              await  
+
+              res.status(200).json({
+                status: 0,
+ 
+               
+              });
+            }
+          },
+          (err) => {
+            console.log(err);
+            res.status(505).json({ err });
+          }
+        );
+      }
+    },
+    (err) => {
+      console.log(err);
+      res.status(505).json({ err });
+    }
+  );
+};
+
 exports.signIn = (req, res) => {
   User.findOne({ email: req.body.email }).then(
     (user) => {
