@@ -8,7 +8,9 @@ exports.changeName = async (req, res) => {
   
     try{
       
-      User.updateOne({_id: req.auth.userId}, {$set: {name: }})
+      await User.updateOne({_id: req.auth.userId}, {$set: {name: req.body.name}}); 
+      
+      res.status(200).json({status: 0})
       
     }catch(err){
       
