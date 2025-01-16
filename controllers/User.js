@@ -23,7 +23,9 @@ exports.changePhoto = async (req, res) => {
   
     try{
       
-      console.log(req.file);
+      console.log(req.files);
+      
+      const file = req.files; 
       
      res.status(200).json({status: 0});
       
