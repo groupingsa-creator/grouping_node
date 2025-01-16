@@ -1149,7 +1149,6 @@ exports.annoncesRecherche = async (req, res) => {
             year,
             status: req.body.type,
             userId: req.auth.userId, 
-            type: req.body.type, 
             date: new Date()
         })
         

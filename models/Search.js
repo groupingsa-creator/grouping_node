@@ -6,10 +6,10 @@ const searchSchema = mongoose.Schema({
      endCity: {type: String}, 
      month: {type: String}, 
      year: {type: String}, 
-     type: {type: String}, 
+     status: {type: String}, 
      userId: {type: String},
      date: {type: Date},
-     status: { type: Boolean, default: null },
+     done: { type: Boolean, default: false },
     
 })
 
