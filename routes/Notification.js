@@ -10,5 +10,6 @@ const auth = require("../middleware/auth");
 router.get("/viewnotifs", auth, notificationCtrl.viewNotifications ); 
 router.get("/notread", auth, notificationCtrl.getNotReadNotifications);
 router.post("/getnotifications", auth, notificationCtrl.getNotifications)
+router.post("/deletenotif", auth, notificationCtrl.deleteNotif)
 
 module.exports = router;

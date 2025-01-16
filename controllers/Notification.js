@@ -117,7 +117,17 @@ exports.getNotifications = async (req, res) => {
    
 }
 
-exports.deleteNotif = (req, res) => {
+exports.deleteNotif = async (req, res) => {
   
-    
+    try{
+      
+      Notification.updateOne({_id: req.body._id}, {desactived: false}); 
+      
+      res.status(200).json({status: 0})
+      
+    }catch(e){
+      
+      console.log(e)
+      res.status(505).json({err: e})
+    }
 }
