@@ -23,11 +23,14 @@ exports.changePhoto = async (req, res) => {
   
     try{
       
-      console.log(req.files);
       
-      const file = req.files; 
       
-     res.status(200).json({status: 0});
+      const file = req.files[0]; 
+      const photo = `${req.protocol}s://${req.get("host")}/images/${file.filename}`
+      
+      await User.updateOne({_id: req.auth.userId}, {$set: {photo}})
+      
+     res.status(200).json({status: 0, photo});
       
     }catch(err){
       
