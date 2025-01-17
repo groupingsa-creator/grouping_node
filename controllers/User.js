@@ -450,6 +450,10 @@ exports.signUp = (req, res) => {
 };
 
 exports.changePassword = (req, res) => {
+  
+                console.log("Le new pass", req.body.newPass);
+              console.log("last", req.body.last);
+  
   User.findOne({ _id: req.auth.userId }).then(
     (user) => {
       if (!user) {
@@ -476,14 +480,14 @@ exports.changePassword = (req, res) => {
               });
             } else {
  
+
               
             const hash =   await  bcrypt.hash(req.body.newPass, 10); 
+              
               User.updateOne({_id: user._id}, {$set: {password: hash}})
 
               res.status(200).json({
                 status: 0,
- 
-               
               });
             }
           },
