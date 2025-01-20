@@ -881,9 +881,11 @@ exports.addAnnouncement = (req, res) => {
         date: new Date(), 
         read: false, 
         view: false,
-        receiverId: userr._id
+        receiverId: userr._id, 
+        authorId: "grouping"
       })
       
+      await newNotif.save();
     //  console.log()
     
       for(let tokennn of userr.fcmToken){
@@ -1351,8 +1353,11 @@ exports.toggleActiveStatus = async (req, res) => {
         date: new Date(), 
         read: false, 
         view: false,
-        receiverId: userr._id
+        receiverId: userr._id, 
+        authorId: "grouping"
       })
+      
+      await newNotif.save();
     
       for(let tokennn of userr.fcmToken){
         
