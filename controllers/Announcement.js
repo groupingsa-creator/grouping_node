@@ -864,7 +864,7 @@ exports.addAnnouncement = (req, res) => {
         console.log("depart", new Date(dateOfDeparture).getFullYear().toString()); 
       
           const search = await Search.findOne({startCity: req.body.startCity, endCity: req.body.endCity, status: "kilos",
-          year: new Date(dateOfDeparture).getFullYear().toString(), $or: [{month: (new Date(dateOfDeparture).getMonth() + 1).toString()}, {month: (new Date(dateOfDeparture).getMonth() + 2).toString()}]});
+          year: new Date(dateOfDeparture).getFullYear().toString(), $or: [{month: (new Date(dateOfDeparture).getMonth()).toString()}, {month: (new Date(dateOfDeparture).getMonth() + 1).toString()}]});
 
       console.log("la recherche", search);
       
