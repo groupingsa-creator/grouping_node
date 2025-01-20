@@ -858,6 +858,11 @@ exports.addAnnouncement = (req, res) => {
       .save()
       .then(async (annoncee) => {
       
+        console.log("depart", req.body.startCity); 
+        console.log("depart", req.body.endCity); 
+        console.log("depart", (new Date(dateOfDeparture).getMonth() + 1).toString()); 
+        console.log("depart", new Date(dateOfDeparture).getFullYear().toString()); 
+      
           const search = await Search.findOne({startCity: req.body.startCity, endCity: req.body.endCity, status: "kilos",
           year: new Date(dateOfDeparture).getFullYear().toString(), $or: [{month: (new Date(dateOfDeparture).getMonth() + 1).toString()}, {month: (new Date(dateOfDeparture).getMonth() + 2).toString()}]});
 
