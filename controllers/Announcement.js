@@ -891,7 +891,7 @@ exports.addAnnouncement = (req, res) => {
     
       for(let tokennn of userr.fcmToken){
         
-          await sendPushNotification(tokennn.fcmToken, "Bonne nouvelle", "Un container correspondant à une de vos recherche a été trouvé", `${badgee}`, {annonceId: annoncee._id, "status": `1`} )
+          await sendPushNotification(tokennn.fcmToken, "Bonne nouvelle", "Un container correspondant à une de vos recherche a été trouvé", badgee, {annonceId: annoncee._id, "status": `1`, "badge": `${badgee}`} )
       
       }
     
@@ -1363,7 +1363,7 @@ exports.toggleActiveStatus = async (req, res) => {
     
       for(let tokennn of userr.fcmToken){
         
-          await sendPushNotification(tokennn.fcmToken, "Bonne nouvelle", "Un container correspondant à une de vos recherche a été trouvé", `${badgee}`, {annonceId: announcement._id,  "status": `1`} )
+          await sendPushNotification(tokennn.fcmToken, "Bonne nouvelle", "Un container correspondant à une de vos recherche a été trouvé", badgee , {annonceId: announcement._id,  "status": `1`, "badge": `${badgee}`} )
       
       }
     
