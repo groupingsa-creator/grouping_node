@@ -24,9 +24,13 @@ exports.getNotReadNotifications = async(req, res) => {
     
     try{
       
-      const badges = await Notification.countDocuments({receiverId: req.auth.userId, read: false}); 
+      const badges = await Notification.countDocuments({receiverId: req.auth.userId, read: false});
+      const messages = await Notification.countDocuments({user2Id: req.auth.userId, read: false});
       
-      res.status(201).json({status: 0, badges});
+      
+      
+      res.status(201).json({status: 0, badges: parseInt(badges) + parseInt(messages)});
+      
       
     }catch(err){
       
