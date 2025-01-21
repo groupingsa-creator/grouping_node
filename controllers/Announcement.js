@@ -888,7 +888,7 @@ exports.addAnnouncement = (req, res) => {
       
       await newNotif.save();
     
-     const badgee = await Notification.countDocuments({read: false, userId: userr._id})
+     const badgee = await Notification.countDocuments({read: false, receiverId: userr._id})
     
       console.log("le bon truc ", badgee);
     //  console.log()
@@ -1350,7 +1350,7 @@ exports.toggleActiveStatus = async (req, res) => {
   if(search){
     
       const userr = await User.findOne({_id: search.userId});
-      const badgee = await Notification.countDocuments({read: false, userId: userr._id})
+      const badgee = await Notification.countDocuments({read: false, receiverId: userr._id})
       
       const newNotif = Notification({
         title: "Bonne nouvelle", 
@@ -1388,7 +1388,7 @@ exports.toggleActiveStatus = async (req, res) => {
       
       await newNotification.save();
       
-      const badge = await Notification.countDocuments({receiverId: user._id, view: false}); 
+      const badge = await Notification.countDocuments({receiverId: user._id, read: false}); 
       
       for(let token of tokens){
         
