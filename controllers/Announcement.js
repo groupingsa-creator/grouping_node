@@ -1342,7 +1342,7 @@ exports.toggleActiveStatus = async (req, res) => {
       const user = await User.findOne({_id: announcement.userId}); 
       
         const search = await Search.findOne({startCity: announcement.startCity, endCity: announcement.endCity, type: announcement.type,
-          year: new Date(announcement.dateOfDeparture).getFullYear().tostring(), $or: [{month: new Date(announcement.dateOfDeparture).getMonth()}, {month: new Date(announcement.dateOfDeparture).getMonth() + 1}]});
+          year: new Date(announcement.dateOfDeparture).getFullYear().toString(), $or: [{month: new Date(announcement.dateOfDeparture).getMonth().toString()}, {month: (new Date(announcement.dateOfDeparture).getMonth() + 1).toString()}]});
 
       console.log("la recherche", search);
       
