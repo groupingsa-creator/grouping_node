@@ -113,6 +113,7 @@ const sendEmail = (email) => {
 
   const transporter = nodemailer.createTransport({
     service: "gmail",
+    secure: true,
     auth: {
       user: "groupingsa@gmail.com",
       pass: "Grouping@2024",
