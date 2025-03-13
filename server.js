@@ -10,7 +10,7 @@ const { GoogleAuth } = require("google-auth-library");
 const fs = require("fs");
 const axios = require("axios");
 const Notification = require("./models/Notification")
-const Message = require("./models")
+const Message = require("./models/Messages")
 const User = require("./models/User");
 const MY_PROJECT_ID = "grouping-94f5a";
 const FCM_ENDPOINT = `https://fcm.googleapis.com/v1/projects/${MY_PROJECT_ID}/messages:send`;
@@ -167,19 +167,21 @@ io.on("connection", (socket) => {
   const sender = await User.findOne({_id: message.sender});
   const userr = await User.findOne({_id: receiverId});
       
-  const mess = await Message.countDocuments({user2Id:receiverId, view : false }); 
+  const mess = await Message.countDocuments({user2Id:receiverId, read : false }); 
       
   const badge = await Notification.countDocuments({receiverId, view: false})
+  
+  const finalBadge = parseInt(mess) + parseInt(badge)
       
   for(let token of userr.fcmToken){
     
 
-     console.log("le badge", badge); 
+     console.log("le badge", finalBadge); 
             
     
             await sendPushNotification(token.fcmToken, sender.name , 
             `${message.text}`, 
-            badge, {"status": `5`, senderId: socket.userId, "badge": `${badge}`})
+            finalBadge, {"status": `5`, senderId: socket.userId, "badge": `${finalBadge}`})
   }
 
       // Mise à jour du statut du message
