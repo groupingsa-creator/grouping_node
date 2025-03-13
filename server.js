@@ -16,23 +16,23 @@ const FCM_ENDPOINT = `https://fcm.googleapis.com/v1/projects/${MY_PROJECT_ID}/me
 
 const SERVICE_ACCOUNT_KEY_FILE = "./my-service-account.json";
 
-async function getAccessToken() {
+async function getAccessTokenn() {
   const auth = new GoogleAuth({
     keyFile: SERVICE_ACCOUNT_KEY_FILE,
     scopes: ["https://www.googleapis.com/auth/firebase.messaging"],
   });
 
   
-  
+  console.log("l'accès", auth.getAccessToken());
   const accessToken = await auth.getAccessToken();
-  console.log("l'accès", accessToken);
+  
   return accessToken;
 }
 
 async function sendPushNotification(token, title, body, badge, data = {}) {
   try {
     // Obtenir le jeton OAuth 2.0
-    const accessToken = await getAccessToken();
+    const accessToken = await getAccessTokenn();
     
     console.log("le token access", accessToken);
 
