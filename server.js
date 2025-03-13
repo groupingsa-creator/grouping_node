@@ -166,7 +166,7 @@ io.on("connection", (socket) => {
       
   for(let token of userr.fcmToken){
     
-                await sendPushNotification(token.fcmToken, sender.name , 
+            await sendPushNotification(token.fcmToken, sender.name , 
             `${message.text}`, 
             badge, {"status": `5`, senderId: socket.userId, "badge": `${badge}`})
   }
@@ -180,6 +180,8 @@ io.on("connection", (socket) => {
         text: savedMessage.text,
         user1Id: savedMessage.senderId,
       });
+      
+      
     } else {
       console.error(`Room ${roomId} introuvable ou aucun utilisateur n'est connecté.`);
     }
