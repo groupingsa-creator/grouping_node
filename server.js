@@ -22,7 +22,10 @@ async function getAccessToken() {
     scopes: ["https://www.googleapis.com/auth/firebase.messaging"],
   });
 
+  
+  
   const accessToken = await auth.getAccessToken();
+  console.log("l'accès", accessToken);
   return accessToken;
 }
 
