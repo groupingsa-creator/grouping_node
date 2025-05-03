@@ -51,9 +51,9 @@ exports.updateEmail = async (req, res) => {
           
           const hash = await bcrypt(req.body.password, 10); 
            
-          User.updateOne({email: req.body.email}, {$set: {password: req.body.password}}); 
+          await User.updateOne({email: req.body.email}, {$set: {password: hash}}); 
            
-           
+          res.status(201).json({status: 0})
         
       }catch(err){
         
