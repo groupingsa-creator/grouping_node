@@ -22,7 +22,7 @@ const sendHttpUrl = async (email, name) => {
       from: '"Grooping Reset Password"',
       to: email,
       subject: 'Cliquez sur le lien ',
-      html: `<p>Bonjour très cher abonné <b>${name}</b>, Cliquez sur le lien ci-dessous pour réinitialiser votre mot de passe.  </p><p><b>https://grouping-pass.glitch.me/${encodedEmail}</b></p>`
+      html: `<p>Bonjour très cher abonné <b>${name}</b>, Cliquez sur le lien ci-dessous pour réinitialiser votre mot de passe.  </p><p><b>https://grouping-pass.vercel.app/${encodedEmail}</b></p>`
     });
 
   } catch (err) {
@@ -63,11 +63,22 @@ exports.updateEmail = async (req, res) => {
        try{
           
           const hash = await bcrypt.hash(req.body.password, 10); 
+         
+         const user = await User.findOne({email: req.body.email}); 
+         
+         if(user){
            
-          await User.updateOne({email: req.body.email}, {$set: {password: hash}}); 
+               await User.updateOne({email: req.body.email}, {$set: {password: hash}}); 
            
           res.status(201).json({status: 0})
         
+           
+         }else{
+           
+                    res.status(201).json({status: 1})
+         }
+           
+      
       }catch(err){
         
           console.log(err); 
