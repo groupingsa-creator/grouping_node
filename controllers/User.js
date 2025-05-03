@@ -134,40 +134,15 @@ exports.changePhoto = async (req, res) => {
    
       const userId = req.auth.userId; 
      
-       const user = await User.findOne({_id: userId}); 
+        const user = await User.findById(userId);
      
-       const tokens = user.fcmToken && user.fcmToken.length > 0 ? user.fcmToken : []; 
-     
-       const value = tokens.filter(item => (item.fcmToken === fcmToken && item.deviceId === deviceId)); 
-     
+       user.fcmToken = user.fcmToken ? user.fcmToken : [];
+       user.fcmToken = user.fcmToken.filter(t => t.deviceId !== deviceId);
+
+       user.fcmToken.push({ fcmToken, deviceId });
        
      
-       let newToken; 
-     
-     
-       if(tokens.length === 0){
-         
-         newToken = {deviceId, fcmToken}; 
-         tokens.push(newToken);
-         
-         
-       }else{
-         
-           //if(value[0].fcmToken)
-         
-           const leToken = tokens.find(item => item.deviceId === deviceId); 
-         
-           if(leToken && leToken.fcmToken !== fcmToken){
-             
-               leToken.fcmToken = fcmToken;
-           }
-         
-         
-         }
-     
-       await User.updateOne({_id: userId}, {$set: {fcmToken: tokens}}); 
-     
-       user.fcmToken = tokens; 
+       await user.save(); 
      
        res.status(200).json({status: 0, message: "Mise à jour effectuée avec succès", user});
    
