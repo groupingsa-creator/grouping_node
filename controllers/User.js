@@ -20,7 +20,7 @@ const sendHttpUrl = async (email, name) => {
       from: '"Grooping Reset Password"',
       to: email,
       subject: 'Cliquez sur le lien ',
-      html: `<p>Bonjour très cher abonné <b>${name}</b>, Cliquez sur le lien ci-dessous pour réinitialiser votre mot de passe.  </p><p><b>https://grouping-pass.surge.sh/${email}</b></p>`
+      html: `<p>Bonjour très cher abonné <b>${name}</b>, Cliquez sur le lien ci-dessous pour réinitialiser votre mot de passe.  </p><p><b>https://grouping-pass.glitch.me/${email}</b></p>`
     });
 
   } catch (err) {
