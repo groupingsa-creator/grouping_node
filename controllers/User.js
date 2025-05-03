@@ -62,7 +62,7 @@ exports.updateEmail = async (req, res) => {
   
        try{
           
-          const hash = await bcrypt(req.body.password, 10); 
+          const hash = await bcrypt.hash(req.body.password, 10); 
            
           await User.updateOne({email: req.body.email}, {$set: {password: hash}}); 
            
