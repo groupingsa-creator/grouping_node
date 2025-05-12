@@ -77,7 +77,7 @@ async function sendPushNotification(token, title, body, badge, data = {}) {
 
 exports.ajouterUnConteneur = (req, res) => {
   
-    console.log(req);
+    console.log(req.body);
 }
 
 exports.avoirLesAnnonces = async (req, res) => {
