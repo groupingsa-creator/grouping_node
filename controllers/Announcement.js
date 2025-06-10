@@ -489,7 +489,7 @@ exports.getAnnoncee = async (req, res) => {
 */
 
 exports.annoncesRecherche = async (req, res) => {
-  //console.log(req.body);
+  console.log("la recherche", req.body);
 
   // console.log(monthNameToNumber(req.body.month))
 
