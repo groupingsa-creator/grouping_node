@@ -1112,7 +1112,7 @@ function monthNameToNumber(monthName) {
 }
 
 exports.annoncesRecherche = async (req, res) => {
-  //console.log(req.body);
+  console.log(req.body);
   
   console.log("est ce que tu t'en rend compte ?")
 
