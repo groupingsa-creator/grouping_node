@@ -74,7 +74,9 @@ async function sendPushNotification(token, title, body, badge, data = {}) {
   }
 }
 
-exports.modifierUneAnnonceKilo = (req, res) => {
+exports.modifierUneAnnonceKilo = async (req, res) => {
+  
+  console.log(req.body);
   
     try{
       
@@ -83,7 +85,7 @@ exports.modifierUneAnnonceKilo = (req, res) => {
 
           delete body._id; 
 
-          Announcement.updateOne({_id}, {$set: body}); 
+          await Announcement.updateOne({_id}, {$set: body}); 
 
           res.status(200).json({status: 0, message: 1}); 
       
