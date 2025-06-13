@@ -841,22 +841,15 @@ exports.modifierAnnonceImage = async (req, res) => {
             //console.log(req.body);
 
             let draft = [];
-        
-              console.log(req.body.fileType);
-        
-            if(req.body.fileType == "application/pdf"){
+              
+              
               
               for (let file of req.files) {
+                console.log(file)
                 draft.push(`${req.protocol}s://${req.get("host")}/pdf_documents/${file.filename}`);
               } 
               
-            }else{
-              
-              for (let file of req.files) {
-                draft.push(`${req.protocol}s://${req.get("host")}/images/${file.filename}`);
-              }
-              
-            }
+         
 
 
         
