@@ -821,25 +821,37 @@ exports.modifierAnnonceImage = async (req, res) => {
   
       try{
         
+              if (!req.files || !Array.isArray(req.files)) {
+                return res.status(400).json({ error: "Aucun fichier téléchargé" });
+            }
+
+            // console.log(req.files);
+            //console.log(req.body);
+
+            let draft = [];
+
+            for (let file of req.files) {
+              draft.push(`${req.protocol}s://${req.get("host")}/images/${file.filename}`);
+            } 
         
+            let body = req.body; 
+            const {_id} = req.body; 
+        
+            body = {...body, active: false}
+        
+            delete body._id; 
+        
+            await Announcement.updateOne({_id}, {$set: body}); 
+        
+            res.status(200).json({status: 0})
+
       }catch(err){
         
           console.log(err); 
-          res.status(505).json()
+          res.status(505).json({err})
       }
   
-      if (!req.files || !Array.isArray(req.files)) {
-        return res.status(400).json({ error: "Aucun fichier téléchargé" });
-      }
 
-      // console.log(req.files);
-      //console.log(req.body);
-
-      let draft = [];
-
-      for (let file of req.files) {
-        draft.push(`${req.protocol}s://${req.get("host")}/images/${file.filename}`);
-      }
 }
 
 exports.addAnnouncementWithImages = (req, res) => {
