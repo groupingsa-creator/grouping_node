@@ -452,13 +452,7 @@ exports.getAnnoncee = async (req, res) => {
     
     if(annonce){
       
-      
-    }else{
-      
-      
-    }
-
-    const view = await View.findOne({
+          const view = await View.findOne({
       announcementId: req.body.id,
       phoneId: req.body.phoneId,
     });
@@ -505,6 +499,13 @@ exports.getAnnoncee = async (req, res) => {
     });
 
     res.status(200).json({ status: 0, annonce, sum, user });
+      
+    }else{
+      
+      res.status(200).json({status: 1});
+    }
+
+
   } catch (e) {
     console.log(e);
     res.status(505).json({ e });
