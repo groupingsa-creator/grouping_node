@@ -848,7 +848,9 @@ exports.modifierAnnonceImage = async (req, res) => {
             let body = req.body; 
             const {_id} = req.body; 
         
-            body = {...body, active: false}
+            body = {...body, active: false, draft}
+        
+            console.log("le body", body);
         
             delete body._id; 
         
