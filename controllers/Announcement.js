@@ -836,7 +836,7 @@ exports.modifierAnnonceImage = async (req, res) => {
                console.log("On se concentre", req.body);
                 console.log(req.file);
                console.log("Yes");
-              if (!req.files || !Array.isArray(req.files)) {
+              if ((!req.files || !Array.isArray(req.files)) && !req.file) {
                 return res.status(400).json({ error: "Aucun fichier téléchargé" });
             }
 
