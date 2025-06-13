@@ -774,6 +774,8 @@ exports.toggleActiveStatus = async (req, res) => {
 
 exports.addAnnouncementWithPdf = async (req, res) => {
   
+  console.log(req.body);
+  
   try{
   const draft = [
     `${req.protocol}s://${req.get("host")}/pdf_documents/${req.file.filename}`,
@@ -841,15 +843,22 @@ exports.modifierAnnonceImage = async (req, res) => {
             //console.log(req.body);
 
             let draft = [];
+        
               
-              
+        
+            if(req.body.fileType === "application/pdf"){
               
               for (let file of req.files) {
-                console.log(file)
                 draft.push(`${req.protocol}s://${req.get("host")}/pdf_documents/${file.filename}`);
               } 
               
-         
+            }else{
+              
+              for (let file of req.files) {
+                draft.push(`${req.protocol}s://${req.get("host")}/images/${file.filename}`);
+              }
+              
+            }
 
 
         
@@ -879,6 +888,7 @@ exports.modifierAnnonceImage = async (req, res) => {
 
 exports.addAnnouncementWithImages = (req, res) => {
   // Vérification que req.files existe et est un tableau
+  console.log(req.body);
   if (!req.files || !Array.isArray(req.files)) {
     return res.status(400).json({ error: "Aucun fichier téléchargé" });
   }
