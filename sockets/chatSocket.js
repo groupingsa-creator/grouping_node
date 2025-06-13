@@ -11,6 +11,7 @@ const connectedUsers = new Map();
 module.exports = function (io) {
   io.use((socket, next) => {
     const token = socket.handshake.auth?.token;
+    console.log("On est encore ici ohhh", token);
     if (!token) return next(new Error("Token manquant"));
 
     jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
