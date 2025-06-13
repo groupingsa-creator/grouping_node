@@ -449,6 +449,14 @@ exports.getAnnoncee = async (req, res) => {
     const annonce = await Announcement.findOne({ _id: req.body.id });
 
     console.log(req.body.phoneId);
+    
+    if(annonce){
+      
+      
+    }else{
+      
+      
+    }
 
     const view = await View.findOne({
       announcementId: req.body.id,
