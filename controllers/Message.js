@@ -165,13 +165,21 @@ exports.addMessageweb = async ({ senderId, receiverId, text }) => {
 
 exports.addMessageWithImage = (req, res) => {
   
+  try{
     
-    console.log(req.body);
+     // console.log(req.body);
+    const url = `${req.protocol}s://${req.get("host")}/images/${req.files[0].filename}`
+    
   
-    for(let file of req.files){
-      
-        console.log(file);
-    }
+  }catch(err){
+    
+    console.log(err); 
+    res.status(500).json({err})
+  }
+    
+  
+  
+   
   
   
   res.status(201).json({status: 0});
