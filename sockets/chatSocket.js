@@ -51,14 +51,15 @@ module.exports = function (io) {
 
       try {
         
-        if(!id){
-           
-           const savedMessage = await addMessageweb({
-                  senderId: socket.userId,
-                receiverId,
-                text: message.text,
-              });
-          }
+        let  savedMessage; 
+        
+      
+        savedMessage = await addMessageweb({
+          senderId: socket.userId,
+          receiverId,
+          text: message.text,
+        }, id);
+        
        
 
         const sender = await User.findById(message.sender);
@@ -90,6 +91,11 @@ module.exports = function (io) {
           temporaryMessage.date = savedMessage.date;
           temporaryMessage.status = "sent";
           temporaryMessage._id = savedMessage._id;
+          
+          if(id){
+            
+            temporaryMessage.type = "image";
+          }
 
           io.to(receiverSocketId).emit("newMessageNotification", {
             senderId: socket.userId,
