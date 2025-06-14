@@ -163,7 +163,7 @@ exports.addMessageweb = async ({ senderId, receiverId, text }) => {
   }
 };
 
-exports.addMessageWithImage = (req, res) => {
+exports.addMessageWithImage = async (req, res) => {
   
   try{
     
@@ -178,7 +178,11 @@ exports.addMessageWithImage = (req, res) => {
         date: new Date()
     })
     
-    await newMessage
+     await newMessage.save(); 
+      
+      console.log("l'url", url)
+    
+     res.status({status: 0, url})
   
   }catch(err){
     
