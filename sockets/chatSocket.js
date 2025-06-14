@@ -36,16 +36,33 @@ module.exports = function (io) {
       console.log(`➡️ ${socket.userId} a rejoint ${roomId1}`);
     });
 
-    socket.on("sendMessage", async ({ roomId1, receiverId, message, user1, id }) => {
+    socket.on("sendMessage", async ({ roomId1, receiverId, message, user1, url, id }) => {
       const roomId = roomId1;
       const receiverSocketId = connectedUsers.get(receiverId);
-
-      const temporaryMessage = {
+      console.log("regarde l'id", url);
+      let temporaryMessage; 
+      
+      if(id){
+        
+        temporaryMessage = {
         text: message.text,
         date: new Date(),
         sender: message.sender,
         status: "pending",
+        type: "image", 
+        url
       };
+      
+      }else{
+        
+          temporaryMessage = {
+          text: message.text,
+          date: new Date(),
+          sender: message.sender,
+          status: "pending",
+        };
+      }
+
 
       io.to(roomId).emit("messageReceived", temporaryMessage);
 
@@ -71,7 +88,7 @@ module.exports = function (io) {
         console.log(userr.fcmToken);
 
         for (let token of userr.fcmToken || []) {
-          await sendPushNotification(token.fcmToken, sender.name, message.text, finalBadge, {
+          await sendPushNotification(token.fcmToken, sender.name, id ? "Vous a envoyé une image" : message.text, finalBadge, {
             status: "5",
             senderId: socket.userId,
             badge: `${finalBadge}`,
