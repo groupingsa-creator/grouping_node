@@ -183,21 +183,13 @@ exports.addMessageWithImage = async (req, res) => {
       
       console.log("l'url", url)
     
-     res.status({status: 0, url})
+      res.status(201).json({status: 0, url})
   
   }catch(err){
     
     console.log(err); 
     res.status(500).json({err})
   }
-    
-  
-  
-   
-  
-  
-  res.status(201).json({status: 0});
-  
     
 }
 
