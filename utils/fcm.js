@@ -22,7 +22,7 @@ async function sendPushNotification(token, title, body, badge, data = {}) {
       token,
       notification: { title, body },
       apns: {
-        payload: { aps: { alert: { title, body }, badge } }
+        payload: { aps: { alert: { title, body }, badge, sound: "default" } }
       },
       data,
     },
