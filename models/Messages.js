@@ -6,7 +6,9 @@ const messageSchema = mongoose.Schema({
     user1Id: { type: String }, 
     user2Id: { type: String }, 
     id_annonce: { type: String },  // champ facultatif ajouté
-    read: {type: Boolean, default: false}
+    read: {type: Boolean, default: false}, 
+    type: {type: String}, 
+    url: {type: String}
 })
 
 module.exports = mongoose.model("Message", messageSchema);

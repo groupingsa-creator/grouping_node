@@ -163,6 +163,20 @@ exports.addMessageweb = async ({ senderId, receiverId, text }) => {
   }
 };
 
+exports.addMessageWithImage = (req, res) => {
+  
+    
+    console.log(req.body);
+  
+    for(let file of req.files){
+      
+        console.log(file);
+    }
+  
+  
+    
+}
+
 //pour la version admin
 exports.getConversationCount = async (req, res) => {
   try {
