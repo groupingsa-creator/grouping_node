@@ -20,7 +20,11 @@ try {
     }
   });
 
-  module.exports = multer({ storage }).array("images", 15);
+  module.exports = multer({ storage, limits: {
+    fieldSize: 10 * 1024 * 1024, // Limite taille des champs texte (10 Mo)
+    fileSize: 5 * 1024 * 1024,   // Limite taille de chaque image (5 Mo ici)
+    files: 15                    // Max 15 fichiers
+  } }).array("images", 15);
 } catch (e) {
   console.log(e);
 }
