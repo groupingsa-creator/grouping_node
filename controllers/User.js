@@ -254,7 +254,7 @@ exports.signInWithGoogle = (req, res) => {
           message: "Utilisateur connecté avec succès",
           token: jwt.sign(
             { userId: user._id },
-            "JxqKuulLNPCNfytiyqtsygygfRJYTjgkbhilaebAqetflqRfhhouhpb"
+            process.env.JWT_SECRET
           ),
         });
       } else {
@@ -282,7 +282,7 @@ exports.signInWithGoogle = (req, res) => {
                   message: "Utilisateur ajouté avec succès",
                   token: jwt.sign(
                     { userId: _id },
-                    "JxqKuulLNPCNfytiyqtsygygfRJYTjgkbhilaebAqetflqRfhhouhpb"
+                    process.env.JWT_SECRET
                   ),
                 });
               },
@@ -342,7 +342,7 @@ exports.signInWithGoogleAdmin = (req, res) => {
           message: "Utilisateur connecté avec succès",
           token: jwt.sign(
             { userId: user._id },
-            "JxqKuulLNPCNfytiyqtsygygfRJYTjgkbhilaebAqetflqRfhhouhpb"
+            process.env.JWT_SECRET
           ),
         });
       } else {
@@ -379,7 +379,7 @@ exports.signInWithGoogleAdmin = (req, res) => {
                   message: "Utilisateur ajouté avec succès",
                   token: jwt.sign(
                     { userId: _id },
-                    "JxqKuulLNPCNfytiyqtsygygfRJYTjgkbhilaebAqetflqRfhhouhpb"
+                    process.env.JWT_SECRET
                   ),
                 });
               },
@@ -428,7 +428,7 @@ exports.signUpp = (req, res) => {
                 message: "Utilisateur ajouté avec succès",
                 token: jwt.sign(
                   { userId: _id },
-                  "JxqKuulLNPCNfytiyqtsygygfRJYTjgkbhilaebAqetflqRfhhouhpb"
+                  process.env.JWT_SECRET
                 ),
               });
             },
@@ -492,7 +492,7 @@ exports.signUp = (req, res) => {
               message: "Utilisateur ajouté avec succès",
               token: jwt.sign(
                 { userId: _id },
-                "JxqKuulLNPCNfytiyqtsygygfRJYTjgkbhilaebAqetflqRfhhouhpb"
+                process.env.JWT_SECRET
               ),
             });
           },
@@ -599,7 +599,7 @@ exports.signIn = (req, res) => {
                 user,
                 token: jwt.sign(
                   { userId: _id },
-                  "JxqKuulLNPCNfytiyqtsygygfRJYTjgkbhilaebAqetflqRfhhouhpb"
+                  process.env.JWT_SECRET
                 ),
               });
             }
@@ -667,7 +667,7 @@ exports.signInAdmin = (req, res) => {
               user,
               token: jwt.sign(
                 { userId: _id },
-                "JxqKuulLNPCNfytiyqtsygygfRJYTjgkbhilaebAqetflqRfhhouhpb"
+                process.env.JWT_SECRET
               ),
             });
           },
@@ -786,7 +786,7 @@ exports.connectWithApple = async (req, res) => {
           user,
           token: jwt.sign(
             { userId: user._id },
-            "JxqKuulLNPCNfytiyqtsygygfRJYTjgkbhilaebAqetflqRfhhouhpb"
+            process.env.JWT_SECRET
           ),
         });
       } else {
@@ -806,7 +806,7 @@ exports.connectWithApple = async (req, res) => {
           message: "Utilisateur ajouté avec succès",
           token: jwt.sign(
             { userId: _id },
-            "JxqKuulLNPCNfytiyqtsygygfRJYTjgkbhilaebAqetflqRfhhouhpb"
+            process.env.JWT_SECRET
           ),
         });
       }
@@ -819,7 +819,7 @@ exports.connectWithApple = async (req, res) => {
           user,
           token: jwt.sign(
             { userId: user._id },
-            "JxqKuulLNPCNfytiyqtsygygfRJYTjgkbhilaebAqetflqRfhhouhpb"
+            process.env.JWT_SECRET
           ),
         });
       } else {

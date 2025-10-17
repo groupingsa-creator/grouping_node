@@ -7,6 +7,7 @@ const path = require("path");
 
 const app = express();
 app.use(cors());
+require('dotenv').config();
 
 app.use(express.json({limit: "50mb"})); 
 app.use(express.urlencoded({ extended: true }));
@@ -20,7 +21,7 @@ app.use((req, res, next) => {
     next();
 });
 
-mongoose.connect("mongodb+srv://fideleNdzime:K5kTxlDbjQl8k7yt@cluster0.rb7vp80.mongodb.net/grouping?retryWrites=true&w=majority",
+mongoose.connect(`mongodb+srv://fideleNdzime:${process.env.MONGOPASS}@cluster0.rb7vp80.mongodb.net/grouping?retryWrites=true&w=majority`,
 
   { useNewUrlParser: true,
     useUnifiedTopology: true, autoIndex: true })

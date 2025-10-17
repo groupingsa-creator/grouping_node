@@ -13,7 +13,7 @@ const Notification = require("../models/Notification")
 const Search = require("../models/Search"); 
 
 
-const MY_PROJECT_ID = "grouping-94f5a";
+const MY_PROJECT_ID = process.env.FIREBASEPROJECTID
 const FCM_ENDPOINT = `https://fcm.googleapis.com/v1/projects/${MY_PROJECT_ID}/messages:send`;
 
 const SERVICE_ACCOUNT_KEY_FILE = "./my-service-account.json";
