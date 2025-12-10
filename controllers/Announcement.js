@@ -108,7 +108,7 @@ exports.ajouterUnConteneur = (req, res) => {
 }
 
 exports.avoirLesAnnonces = async (req, res) => {
-  const startAt = req.body.startAt ? req.body.startAt : 0;
+  const startAt = req.body.startAt ? parseInt(req.body.startAt) : 0;
 
   try {
     const { status } = req.body;
@@ -118,11 +118,24 @@ exports.avoirLesAnnonces = async (req, res) => {
       dateOfDeparture: { $gte: new Date() },
     };
 
+    // 🔹 Agrégation pour annonces + utilisateurs
     const result = await Announcement.aggregate([
-      { $match: filter }, // Appliquer les filtres
+      { $match: filter },
+      {
+        $addFields: { userObjectId: { $toObjectId: "$userId" } }, // convertir String → ObjectId
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "userObjectId",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+      { $unwind: "$user" }, // pour avoir un seul objet user
       {
         $facet: {
-          total: [{ $count: "count" }], // Compter les documents correspondants
+          total: [{ $count: "count" }],
           annonces: [
             { $sort: { date: -1 } },
             { $skip: startAt },
@@ -135,6 +148,7 @@ exports.avoirLesAnnonces = async (req, res) => {
     const total = result[0]?.total[0]?.count || 0;
     const annonces = result[0]?.annonces || [];
 
+    // 🔹 Enrichir avec les informations des villes
     const cityNames = [
       ...new Set([
         ...annonces.map((c) => c.startCity),
@@ -142,27 +156,24 @@ exports.avoirLesAnnonces = async (req, res) => {
       ]),
     ];
 
-    const cities = await City.find({ name: { $in: cityNames } });
+    const cities = await City.find({ name: { $in: cityNames } }).lean();
     const cityMap = new Map(cities.map((city) => [city.name, city]));
 
-    // Ajouter les informations de ville aux conteneurs et kilos
     annonces.forEach((annonce) => {
-      annonce.startCity2 = cityMap.get(annonce.startCity);
-      annonce.endCity2 = cityMap.get(annonce.endCity);
+      annonce.startCity2 = cityMap.get(annonce.startCity) || null;
+      annonce.endCity2 = cityMap.get(annonce.endCity) || null;
     });
 
-    res
-      .status(200)
-      .json({
-        status: 0,
-        annonces,
-        total,
-        startAt:
-          annonces.length === 10 ? parseInt(req.body.startAt) + 10 : null,
-      });
+    // 🔹 Réponse
+    res.status(200).json({
+      status: 0,
+      annonces,
+      total,
+      startAt: annonces.length === 10 ? startAt + 10 : null,
+    });
   } catch (err) {
     console.log(err);
-    res.status(505).json({ err });
+    res.status(500).json({ err });
   }
 };
 
