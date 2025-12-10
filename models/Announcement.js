@@ -12,7 +12,7 @@ const AnnouncementSchema = mongoose.Schema({
     company: {type: String}, 
     description: {type: String}, 
     pieds: {type: Number},
-    userId: {type: String}, 
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     draft: {type: Array},
     status: {type: String}, 
     date: {type: Date}, 
