@@ -1176,7 +1176,13 @@ exports.getAnnonces = async (req, res) => {
     const allUserIds = [
       ...new Set([...containers.map(c => c.userId), ...kilos.map(k => k.userId)])
     ];
+
+    console.log(allUserIds);
+
     const users = await User.find({ _id: { $in: allUserIds } }).lean();
+
+    console.log(users);
+    
     const userMap = new Map(users.map(u => [u._id.toString(), u]));
 
     // 4️⃣ Ajouter l'utilisateur à chaque annonce
