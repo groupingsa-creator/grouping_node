@@ -1,5 +1,6 @@
 const Announcement = require("../models/Announcement");
 const City = require("../models/City");
+const Country = require("../models/Country");
 const User = require("../models/User");
 const mongoose = require("mongoose");
 const { ObjectId } = require("mongodb");
@@ -561,9 +562,40 @@ exports.annoncesRecherche = async (req, res) => {
   const endDate = new Date(year, month, 1);
 
   try {
+
+    
+   let  start = req.body.start; 
+    let end = req.body.end; 
+    let finalStartCities;
+    let finalEndCities; 
+
+    if(req.body.type === "container"){
+
+      let startCountry = await Country.findOne({name: start}); 
+      let endCountry = await Country.findOne({name: end}); 
+
+      let startCities = await City.find({country_id: startCountry._id}); 
+      let endCities = await City.find({country_id: endCountry._id});
+
+       finalStartCities = startCities.map(item => {
+
+          return item.name
+
+      }); 
+
+       finalEndCities = endCities.map(item => {
+
+        return item.name
+
+    }); 
+
+    }
+
+
+
     const annoncesCount = await Announcement.countDocuments({
-      startCity: req.body.start,
-      endCity: req.body.end,
+      startCity: req.body.type === 'container' ? {$in: finalStartCities} :  req.body.start,
+      endCity: req.body.type === 'container' ? {$in: finalEndCities} :  req.body.end,
       dateOfDeparture: {
         $gte: startDate,
         $lt: endDate,
@@ -573,8 +605,8 @@ exports.annoncesRecherche = async (req, res) => {
     });
 
     const annonces = await Announcement.find({
-      startCity: req.body.start,
-      endCity: req.body.end,
+      startCity: req.body.type === 'container' ? {$in: finalStartCities} :  req.body.start,
+      endCity: req.body.type === 'container' ? {$in: finalEndCities} :  req.body.end,
       dateOfDeparture: {
         $gte: startDate,
         $lt: endDate,
