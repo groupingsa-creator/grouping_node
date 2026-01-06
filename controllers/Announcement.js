@@ -589,7 +589,11 @@ exports.annoncesRecherche = async (req, res) => {
 
     }); 
 
+ 
+
     }
+
+    console.log('les cities final', finalStartCities);
 
 
 
