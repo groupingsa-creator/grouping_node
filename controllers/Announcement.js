@@ -595,7 +595,9 @@ exports.annoncesRecherche = async (req, res) => {
 
     console.log('les cities final', finalStartCities);
 
+    console.log('les cities final', finalEndCities);
 
+    
 
     const annoncesCount = await Announcement.countDocuments({
       startCity: req.body.type === 'container' ? {$in: finalStartCities} :  req.body.start,
