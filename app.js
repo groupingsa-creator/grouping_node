@@ -36,6 +36,7 @@ const announcementRouter = require("./routes/Announcement");
 const messageRouter = require("./routes/Message");
 const notificationRouter = require("./routes/Notification");
 const searchRouter = require("./routes/Search");
+const tokenRouter = require("./routes/DeviceToken"); 
 
 
 app.use("/api/country", countryRouter)
@@ -47,5 +48,6 @@ app.use("/api/annonce", announcementRouter);
 app.use("/api/message", messageRouter); 
 app.use("/api/notification", notificationRouter);
 app.use("/api/search", searchRouter);
+app.use("/api/token", tokenRouter);
 
 module.exports = app;

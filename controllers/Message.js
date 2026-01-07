@@ -167,10 +167,16 @@ exports.addMessageweb = async ({ senderId, receiverId, text },id) => {
 exports.addMessageWithImage = async (req, res) => {
   
   try{
+
+    let url; 
+
+    if(req.file){
+      
+      url = req.file.path
+        
+    }
     
-     // console.log(req.body);
-    const url = `${req.protocol}s://${req.get("host")}/images/${req.files[0].filename}`
-    
+
     const newMessage = new Message({
         url, 
         type: "image", 
