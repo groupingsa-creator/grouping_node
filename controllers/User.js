@@ -5,10 +5,12 @@ const nodemailer = require("nodemailer");
 
 
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: 'mail.groupingpro.com',
+  secure: true, 
+  port: 465,
   auth: {
-    user: 'nkastrro@gmail.com',         // Remplace par ton Gmail
-    pass: 'llwofpoqfghijytk'  // Active le mot de passe d’application si 2FA est activée
+    user: 'noreply@groupingpro.com',         // Remplace par ton Gmail
+    pass: 'wS6-99$EexrqjcM'  // Active le mot de passe d’application si 2FA est activée
   }
 });
 
