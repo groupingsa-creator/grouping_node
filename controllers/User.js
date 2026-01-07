@@ -107,9 +107,13 @@ exports.changePhoto = async (req, res) => {
     try{
       
       
+      let photo; 
       
-      const file = req.files[0]; 
-      const photo = `${req.protocol}s://${req.get("host")}/images/${file.filename}`
+      if(req.file){
+      
+        photo = req.file.path
+          
+      }
       
       await User.updateOne({_id: req.auth.userId}, {$set: {photo}})
       
@@ -839,12 +843,12 @@ exports.addUser = async (req, res) => {
     let draft = [];
 
     // Traitement des fichiers s'ils existent
-    if (req.files && Array.isArray(req.files)) {
-      for (let file of req.files) {
+    if (req.file) {
+      
         draft.push(
-          `${req.protocol}://${req.get("host")}/images/${file.filename}`
+          req.file.path
         );
-      }
+      
     }
 
     const userId = req.auth.userId; // ID de l'utilisateur qui ajoute

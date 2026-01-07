@@ -5,7 +5,7 @@ const router = express.Router();
 
 const userCtrl = require("../controllers/User"); 
 const auth = require("../middleware/auth");
-const multer2 = require("../middleware/multer-configs2");  
+const { handleUpload } = require("../middleware/multer");
 
 
 //router.get("/adduser", userCtrl.SignUp);
@@ -19,11 +19,11 @@ router.post("/signin", userCtrl.signIn);
 router.post("/signinAdmin", userCtrl.signInAdmin);
 router.post("/getallusers", auth, userCtrl.getAllUsers)
 router.post("/togglelockstatus", auth, userCtrl.toggleLockStatus)
-router.post("/addadmin", auth, multer2, userCtrl.addUser); 
+router.post("/addadmin", auth, handleUpload, userCtrl.addUser); 
 router.post("/connectwithapple", userCtrl.connectWithApple);
 router.post("/updatefcmToken", auth, userCtrl.updateFcmToken); 
 router.post("/changename", auth, userCtrl.changeName);
-router.post("/changephoto", auth, multer2, userCtrl.changePhoto);
+router.post("/changephoto", auth, handleUpload, userCtrl.changePhoto);
 router.post("/changepassword", auth, userCtrl.changePassword);
 router.post("/gotoemail", userCtrl.goToEmail);
 router.post("/updateemail", userCtrl.updateEmail); 
