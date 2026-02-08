@@ -1216,6 +1216,7 @@ exports.getAnnonces = async (req, res) => {
     ];
 
     console.log(allUserIds);
+    console.log("On se voit bien");
 
     const users = await User.find({ _id: { $in: allUserIds } }).lean();
 
