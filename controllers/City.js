@@ -101,15 +101,7 @@ exports.getCitiesByCountryId = async (req, res) => {
 
 
 
-  const countryId = new mongoose.Types.ObjectId(req.body._id);
-
-
-  console.log("Voici le gars", countryId);
-
-  const one = await City.findOne({ country: "Belgique" });
-console.log("country_id value:", one?.country_id);
-console.log("country_id typeof:", typeof one?.country_id);
-console.log("country_id is ObjectId:", one?.country_id && one.country_id.constructor?.name);
+  const countryId = String(req.body._id).trim();
 
 
 
