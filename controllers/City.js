@@ -98,8 +98,13 @@ exports.getCitiesByCountryId = (req, res) => {
 
   const countryId = new mongoose.Types.ObjectId(req.body._id);
 
+  console.log("Voici le gars", countryId);
+
   City.find({ country_id: countryId })
     .then((cities) => {
+
+      console.log(cities); 
+
       res.status(200).json({ status: 0, cities });
     })
     .catch((err) => {
