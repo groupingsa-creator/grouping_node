@@ -4,7 +4,7 @@ const citySchema = mongoose.Schema({
     name: {type: String}, 
     country: {type: String}, 
     code: {type: String}, 
-    country_id: {type: String}
+    country_id: { type: mongoose.Schema.Types.ObjectId, ref: "Country", index: true },
 })
 
 module.exports = mongoose.model("City", citySchema);

@@ -101,8 +101,7 @@ exports.getCitiesByCountryId = async (req, res) => {
 
 
 
-  const countryId = String(req.body._id).trim();
-
+  const countryId = new mongoose.Types.ObjectId(req.body._id);
 
 
   City.find({ country_id: countryId })
