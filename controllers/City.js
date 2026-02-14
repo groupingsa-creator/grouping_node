@@ -93,9 +93,10 @@ exports.getCities = (req, res) => {
 }
 
 
+
 exports.getCitiesByCountryId = (req, res) => {
 
-  const countryId = mongoose.Types.ObjectId(req.body._id);
+  const countryId = new mongoose.Types.ObjectId(req.body._id);
 
   City.find({ country_id: countryId })
     .then((cities) => {
@@ -103,6 +104,6 @@ exports.getCitiesByCountryId = (req, res) => {
     })
     .catch((err) => {
       console.log(err);
-      res.status(500).json({ status: 3, err });
+      res.status(500).json({ err });
     });
 };
