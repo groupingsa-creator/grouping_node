@@ -106,7 +106,7 @@ exports.getCitiesByCountryId = async (req, res) => {
 
   console.log("Voici le gars", countryId);
 
-  const one = await City.findOne({ country: "Belgique" }).select("country_id").lean();
+  const one = await City.findOne({ country: "Belgique" });
 console.log("country_id value:", one?.country_id);
 console.log("country_id typeof:", typeof one?.country_id);
 console.log("country_id is ObjectId:", one?.country_id && one.country_id.constructor?.name);
