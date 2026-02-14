@@ -1,5 +1,6 @@
 const City = require("../models/City"); 
 const Country = require("../models/Country")
+const mongoose = require("mongoose");
 
 exports.addCity = (req, res) => {
   
@@ -91,26 +92,17 @@ exports.getCities = (req, res) => {
     })
 }
 
+
 exports.getCitiesByCountryId = (req, res) => {
-  
-    
-  console.log(req.body); 
 
+  const countryId = mongoose.Types.ObjectId(req.body._id);
 
-
-  const value = req.body.active === "kilos" ? "k" : "c"; 
-    
-  
-    City.find({country_id: req.body._id, status: {$in: [value]}}).then((cities) => {
-      
-      //console.log(cities);
-      
-       res.status(200).json({status: 0, cities});
-        
-    }, (err) => {
-      
-      console.log(err)
-      
-        res.status(505).json({err})
-    }) 
-}
+  City.find({ country_id: countryId })
+    .then((cities) => {
+      res.status(200).json({ status: 0, cities });
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).json({ status: 3, err });
+    });
+};
