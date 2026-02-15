@@ -1501,7 +1501,7 @@ exports.getConversionRate = async (req, res) => {
 
 exports.toggleActiveStatus = async (req, res) => {
   try {
-    const { id } = req.body;
+    const { id, transitaire } = req.body;
 
     // Vérifier si l'ID est fourni
     if (!id) {
@@ -1526,11 +1526,16 @@ exports.toggleActiveStatus = async (req, res) => {
     if (announcement.active) {
       // Si active est true, on le passe à false et on ajoute locked
       update.active = false;
-      update.locked = true; 
+      update.locked = true;
     } else {
       // Si active est false, on le passe à true et on retire locked
       update.active = true;
       update.$unset = { locked: "" }; // Utiliser $unset pour supprimer `locked`
+
+      // Ajouter le transitaire si fourni
+      if (transitaire) {
+        update.transitaire = transitaire;
+      }
       
       const user = await User.findOne({_id: announcement.userId}); 
       
