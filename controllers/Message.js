@@ -2,6 +2,33 @@ const Message = require("../models/Messages");
 const User = require("../models/User");
 const Announcement = require("../models/Announcement");
 
+// Notifier le destinataire via socket si en ligne (pour les endpoints REST)
+const notifyReceiverSocket = async (req, senderId, receiverId, savedMessage) => {
+  const io = req.app.get("io");
+  const connectedUsers = req.app.get("connectedUsers");
+  if (!io || !connectedUsers) return;
+
+  const receiverSocketId = connectedUsers.get(String(receiverId));
+  if (!receiverSocketId) return;
+
+  const sender = await User.findById(senderId);
+  io.to(receiverSocketId).emit("newMessageNotification", {
+    senderId: String(senderId),
+    receiverId: String(receiverId),
+    message: {
+      _id: String(savedMessage._id),
+      text: savedMessage.text || "",
+      date: savedMessage.date,
+      url: savedMessage.url,
+      type: savedMessage.type,
+      sender: sender
+        ? { _id: String(sender._id), name: sender.name, email: sender.email, photo: sender.photo }
+        : { _id: String(senderId) },
+      status: "sent",
+    },
+  });
+};
+
 exports.getMessages = async (req, res) => {
   //console.log(req.body);
 
@@ -117,7 +144,6 @@ exports.getMessagesById = async (req, res) => {
 };
 
 exports.addMessage = async (req, res) => {
-  //console.log(req.body, 'envoi du message en base de données');
   const newMessage = new Message({
     date: new Date(),
     text: req.body.text,
@@ -126,7 +152,10 @@ exports.addMessage = async (req, res) => {
   });
 
   try {
-    await newMessage.save();
+    const saved = await newMessage.save();
+
+    // Notifier le destinataire en temps réel via socket
+    await notifyReceiverSocket(req, req.auth.userId, req.body._id, saved);
 
     const messages = await Message.find({
       user1Id: req.auth.userId,
@@ -167,38 +196,27 @@ exports.addMessageweb = async ({ senderId, receiverId, text },id) => {
 };
 
 exports.addMessageWithImage = async (req, res) => {
-  
-  try{
-
-    let url; 
-
-    if(req.file){
-      
-      url = req.file.path
-        
+  try {
+    let url;
+    if (req.file) {
+      url = req.file.path;
     }
-    
 
     const newMessage = new Message({
-        url, 
-        type: "image", 
-        user1Id: req.body.user1,
-        user2Id: req.body.user2,
-        date: new Date()
-    })
-    
-     await newMessage.save(); 
-      
-      console.log("l'url", url)
-    
-      res.status(201).json({status: 0, url})
-  
-  }catch(err){
-    
-    console.log(err); 
-    res.status(500).json({err})
+      url,
+      type: "image",
+      user1Id: req.body.user1,
+      user2Id: req.body.user2,
+      date: new Date(),
+    });
+
+    await newMessage.save();
+
+    res.status(201).json({ status: 0, url });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ err });
   }
-    
 }
 
 exports.addMessageWithMedia = async (req, res) => {

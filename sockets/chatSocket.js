@@ -8,7 +8,7 @@ const { sendPushNotification } = require("../utils/fcm");
 
 const connectedUsers = new Map();
 
-module.exports = function chatSocket(io) {
+function chatSocket(io) {
   io.use((socket, next) => {
     const token = socket.handshake.auth?.token;
     if (!token) return next(new Error("Token manquant"));
@@ -168,4 +168,6 @@ module.exports = function chatSocket(io) {
       console.log(`🔌 ${socket.userId} déconnecté`);
     });
   });
-};
+}
+
+module.exports = { chatSocket, connectedUsers };
