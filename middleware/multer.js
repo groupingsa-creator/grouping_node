@@ -46,4 +46,58 @@ const handleUpload = (req, res, next) => {
   });
 };
 
-module.exports = { handleUpload };
+// Middleware pour upload de medias (image, audio, document)
+const mediaStorage = new CloudinaryStorage({
+  cloudinary,
+  params: async (req, file) => {
+    const isImage = file.mimetype.startsWith("image/");
+    const isAudio = file.mimetype.startsWith("audio/");
+    const isPdf = file.mimetype === "application/pdf";
+
+    if (!isImage && !isAudio && !isPdf) {
+      throw new Error("Type de fichier non supporté");
+    }
+
+    if (isImage) {
+      return {
+        folder: "grouping",
+        resource_type: "image",
+        transformation: [
+          { width: 1440, height: 1440, crop: "limit" },
+          { quality: "auto:good", fetch_format: "auto", flags: "strip_profile" },
+          { flags: "progressive" },
+        ],
+      };
+    }
+
+    if (isAudio) {
+      return {
+        folder: "grouping",
+        resource_type: "video",
+      };
+    }
+
+    // PDF / document
+    return {
+      folder: "grouping",
+      resource_type: "raw",
+    };
+  },
+});
+
+const mediaMulterInstance = multer({ storage: mediaStorage });
+
+const handleMediaUpload = (req, res, next) => {
+  mediaMulterInstance.single("file")(req, res, function (err) {
+    if (err) {
+      console.error("Erreur upload media :", err);
+      return res.status(400).json({
+        error: "Échec de l'upload du fichier.",
+        details: err.message,
+      });
+    }
+    next();
+  });
+};
+
+module.exports = { handleUpload, handleMediaUpload };

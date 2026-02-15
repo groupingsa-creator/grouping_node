@@ -90,6 +90,8 @@ exports.getMessagesById = async (req, res) => {
           _id: msg._id,
           text: msg.text,
           date: msg.date,
+          url: msg.url,
+          type: msg.type,
           sender: isCurrentUserSender ? usersById[currentUserId] : otherUser,
         });
 
@@ -198,6 +200,32 @@ exports.addMessageWithImage = async (req, res) => {
   }
     
 }
+
+exports.addMessageWithMedia = async (req, res) => {
+  try {
+    let url;
+    if (req.file) {
+      url = req.file.path;
+    }
+
+    const type = req.body.type || "image";
+
+    const newMessage = new Message({
+      url,
+      type,
+      user1Id: req.body.user1,
+      user2Id: req.body.user2,
+      date: new Date(),
+    });
+
+    await newMessage.save();
+
+    res.status(201).json({ status: 0, url, type });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ err });
+  }
+};
 
 //pour la version admin
 exports.getConversationCount = async (req, res) => {
