@@ -71,9 +71,11 @@ const mediaStorage = new CloudinaryStorage({
     }
 
     if (isAudio) {
+      const ext = file.originalname.split('.').pop() || 'webm';
       return {
         folder: "grouping",
         resource_type: "video",
+        format: ext,
       };
     }
 
