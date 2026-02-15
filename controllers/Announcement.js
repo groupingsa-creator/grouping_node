@@ -1594,7 +1594,7 @@ exports.toggleActiveStatus = async (req, res) => {
             "L'annonce sur votre conteneur est désormais active et visible pour tous. Retrouvez-la dans vos annonces", 
             badge, {"status": `0`, "badge": `${badge}`})
       }
-      
+
     }
 
     // Appliquer les modifications
@@ -1614,6 +1614,45 @@ exports.toggleActiveStatus = async (req, res) => {
     res.status(500).json({
       status: 1,
       message: "Erreur lors de la mise à jour du statut 'active'.",
+      error,
+    });
+  }
+};
+
+exports.updateTransitaire = async (req, res) => {
+  try {
+    const { id, transitaire } = req.body;
+
+    if (!id || !transitaire) {
+      return res.status(400).json({
+        status: 1,
+        message: "L'identifiant de l'annonce et le nom du transitaire sont requis.",
+      });
+    }
+
+    const updatedAnnouncement = await Announcement.findByIdAndUpdate(
+      id,
+      { transitaire: transitaire.trim() },
+      { new: true }
+    );
+
+    if (!updatedAnnouncement) {
+      return res.status(404).json({
+        status: 1,
+        message: "Annonce non trouvée.",
+      });
+    }
+
+    res.status(200).json({
+      status: 0,
+      message: "Transitaire mis à jour avec succès.",
+      announcement: updatedAnnouncement,
+    });
+  } catch (error) {
+    console.error("Erreur lors de la mise à jour du transitaire :", error);
+    res.status(500).json({
+      status: 1,
+      message: "Erreur lors de la mise à jour du transitaire.",
       error,
     });
   }

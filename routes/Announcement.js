@@ -21,7 +21,8 @@ router.get("/getvalidannouncements", auth, announcementCtrl.getValidAnnouncement
 router.get("/getfalsecontainer", auth, announcementCtrl.getFalseContainer)
 router.get("/getfalsekilo", auth, announcementCtrl.getFalseKilo)
 router.get("/getconversionrate", auth, announcementCtrl.getConversionRate)
-router.post("/updateactivecontainer", auth, announcementCtrl.toggleActiveStatus); 
+router.post("/updateactivecontainer", auth, announcementCtrl.toggleActiveStatus);
+router.post("/updatetransitaire", auth, announcementCtrl.updateTransitaire);
 router.post("/avoirlesannonces", announcementCtrl.avoirLesAnnonces);
 router.post("/ajouterunconteneur", auth, multer2,  announcementCtrl.addAnnouncementWithImages);
 router.post("/modifierannonceimg", auth, multer2, announcementCtrl.modifierAnnonceImage)
