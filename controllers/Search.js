@@ -2,8 +2,7 @@ const Search = require("../models/Search");
 
 exports.getSearch = async (req, res) => {
   try {
-    // Filtre pour exclure les documents ayant status à true
-    const data = await Search.find({ status: { $ne: true } });
+    const data = await Search.find({ done: { $ne: true } });
     res.status(200).json(data); // Renvoie les données au client
   } catch (error) {
     console.error('Erreur lors de la récupération des données :', error);
