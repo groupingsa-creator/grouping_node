@@ -629,19 +629,6 @@ exports.annoncesRecherche = async (req, res) => {
       kilo.endCity2 = await City.findOne({ name: kilo.endCity });
     }
 
-    if(annonces.length === 0){
-      const newSearch = Search({
-        startCity: req.body.start,
-        endCity: req.body.end,
-        month,
-        year,
-        status: req.body.type,
-        userId: req.auth.userId,
-        date: new Date()
-      });
-      await newSearch.save();
-    }
-
     res
       .status(200)
       .json({
