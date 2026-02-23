@@ -11,4 +11,8 @@ const messageSchema = mongoose.Schema({
     url: {type: String}
 })
 
+messageSchema.index({ user1Id: 1, user2Id: 1, date: -1 });
+messageSchema.index({ user2Id: 1, date: -1 });
+messageSchema.index({ user2Id: 1, read: 1 });
+
 module.exports = mongoose.model("Message", messageSchema);

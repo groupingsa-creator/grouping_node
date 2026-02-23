@@ -3,25 +3,16 @@ const User = require("../models/User");
 const Announcement = require("../models/Announcement");
 
 exports.getMessages = async (req, res) => {
-  //console.log(req.body);
-
   try {
-    const messages = await Message.find({$or: [ {$and:[{user1Id: req.auth.userId}, {user2Id: req.body.user2}] }, {$and: [{user2Id: req.auth.userId}, {user1Id: req.body.user2}]}]
-      
-      
-    })
-      .sort({ date: -1 })
-      .skip(req.body.startAt)
-      .limit(10);
-    
-      await Message.updateMany({user2Id: req.body.user2}, {$set: {read: true}});
-
-    const user = await User.findOne({ _id: req.body.user2 });
-
-    const count = await Announcement.countDocuments({
-      userId: req.body.user2,
-      active: true,
-    });
+    const [messages, , user, count] = await Promise.all([
+      Message.find({$or: [
+        {$and:[{user1Id: req.auth.userId}, {user2Id: req.body.user2}]},
+        {$and: [{user2Id: req.auth.userId}, {user1Id: req.body.user2}]}
+      ]}).sort({date: -1}).skip(req.body.startAt).limit(10),
+      Message.updateMany({user1Id: req.body.user2, user2Id: req.auth.userId, read: false}, {$set: {read: true}}),
+      User.findOne({_id: req.body.user2}).select('-password').lean(),
+      Announcement.countDocuments({userId: req.body.user2, active: true}),
+    ]);
 
     res.status(200).json({
       status: 0,
@@ -59,7 +50,7 @@ exports.getMessagesById = async (req, res) => {
     ];
 
     // Étape 3 : Rechercher les utilisateurs correspondants
-    const users = await User.find({ _id: { $in: userIds } });
+    const users = await User.find({ _id: { $in: userIds } }).select('-password').lean();
 
     // Fonction pour regrouper les messages par expéditeur unique
     const groupMessagesBySender = (messages, users, currentUserId) => {

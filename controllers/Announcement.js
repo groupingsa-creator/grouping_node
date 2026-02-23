@@ -66,7 +66,6 @@ async function sendPushNotification(token, title, body, badge, data = {}) {
       },
     });
 
-    console.log("Notification envoyée avec succès :", response.data);
   } catch (error) {
     console.error(
       "Erreur lors de l’envoi de la notification :",
@@ -77,7 +76,6 @@ async function sendPushNotification(token, title, body, badge, data = {}) {
 
 exports.modifierUneAnnonceKilo = async (req, res) => {
   
-  console.log(req.body);
   
     try{
       
@@ -103,14 +101,11 @@ exports.modifierUneAnnonceKilo = async (req, res) => {
 
 exports.ajouterUnConteneur = (req, res) => {
   
-    console.log(req.body);
-    console.log(req.files);
     res.status(200).json({status: 0, message: 1})
 }
 
 exports.avoirLesAnnonces = async (req, res) => {
 
-  console.log("On body bag", req.body)
   const startAt = req.body.startAt ? parseInt(req.body.startAt) : 0;
 
   try {
@@ -185,7 +180,6 @@ exports.addAnnouncementWithPdf = (req, res) => {
   
  
   const draft = [`${req.protocol}s://${req.get("host")}/pdf_documents/${req.file.filename}`];
-  //console.log(draft);
   
    const dateOfDeparture = new Date(req.body.dateOfDeparture);  
   // Conversion de coords en objet JSON
@@ -225,8 +219,6 @@ exports.addAnnouncementWithImages = (req, res) => {
         return res.status(400).json({ error: 'Aucun fichier téléchargé' });
     }
   
-     // console.log(req.files); 
-      //console.log(req.body); 
   
       let draft = []; 
   
@@ -273,7 +265,6 @@ exports.addAnnouncement = (req, res) => {
  
   if (req.body.status === "kilos") {
     
-    //console.log("la dix", req.body);
 
     // Convertir dateOfDeparture en objet Date
     const dateOfDeparture = new Date(req.body.dateOfDeparture);
@@ -308,101 +299,14 @@ exports.addAnnouncement = (req, res) => {
         res.status(500).json({ error: err.message });
       });
   } else {
-    console.log(req.body);
-    console.log(req.file);
   }
 }; */
 
-exports.getAnnouncementsById = async (req, res) => {
-  //console.log("On commence");
-
-  try {
-    const containers = await Announcement.find({
-      userId: req.auth.userId,
-      active: true,
-      status: "container",
-    })
-      .sort({ date: -1 })
-      .limit(6);
-    const kilos = await Announcement.find({
-      userId: req.auth.userId,
-      active: true,
-      status: "kilos",
-    })
-      .sort({ date: -1 })
-      .limit(6);
-
-    for (let container of containers) {
-      container.startCity2 = await City.findOne({ name: container.startCity });
-      container.endCity2 = await City.findOne({ name: container.endCity });
-    }
-
-    for (let kilo of kilos) {
-      kilo.startCity2 = await City.findOne({ name: kilo.startCity });
-      kilo.endCity2 = await City.findOne({ name: kilo.endCity });
-    }
-
-    res
-      .status(200)
-      .json({
-        status: 0,
-        kilos,
-        containers,
-        startAt: containers.length == 6 ? 6 : null,
-        startBt: kilos.length == 6 ? 6 : null,
-      });
-  } catch (err) {
-    console.log(err);
-    res.status(505).json({ err });
-  }
-};
-
-exports.moreAnnouncements = async (req, res) => {
-  //console.log(req.body);
-
-  try {
-    const annonces = await Announcement.find({
-      userId: req.auth.userId,
-      active: true,
-      status: req.body.status,
-    })
-      .sort({ date: -1 })
-      .skip(req.body.skip)
-      .limit(6);
-
-    if (req.body.status === "kilos") {
-      for (let kilo of annonces) {
-        kilo.startCity2 = await City.findOne({ name: kilo.startCity });
-        kilo.endCity2 = await City.findOne({ name: kilo.endCity });
-      }
-    } else {
-      for (let container of annonces) {
-        container.startCity2 = await City.findOne({
-          name: container.startCity,
-        });
-        container.endCity2 = await City.findOne({ name: container.endCity });
-      }
-    }
-
-    res
-      .status(200)
-      .json({
-        status: 0,
-        annonces,
-        skip: annonces.length === 6 ? parseInt(req.body.skip) + 6 : null,
-        z: annonces.length,
-      });
-  } catch (e) {
-    console.log(e);
-    res.status(505).son({ e });
-  }
-};
 
 exports.getAnnoncess = async (req, res) => {
   try {
     const currentDate = new Date();
     const limit = req.body.three ? 3 : 60;
-    //console.log("Current Date:", currentDate);
 
     // Récupérer les annonces de conteneurs et de kilos
     const containers = await Announcement.find({
@@ -413,7 +317,6 @@ exports.getAnnoncess = async (req, res) => {
       .sort({ date: 1 })
       .limit(limit);
 
-    //console.log("Containers found:", containers.length);
 
     const kilos = await Announcement.find({
       active: true,
@@ -456,69 +359,31 @@ exports.getAnnoncess = async (req, res) => {
 
 exports.getAnnoncee = async (req, res) => {
   try {
-    //console.log(req.body)
+    const annonce = await Announcement.findOne({ _id: req.body.id, active: true }).lean();
 
-    console.log("On se comprend");
+    if(!annonce) return res.status(200).json({status: 1});
 
-    const annonce = await Announcement.findOne({ _id: req.body.id, active: true });
-
-    console.log(req.body.phoneId);
-    
-    if(annonce){
-      
-          const view = await View.findOne({
-      announcementId: req.body.id,
-      phoneId: req.body.phoneId,
+    // Fire-and-forget : tracking de vue (ne bloque pas la reponse)
+    View.findOne({announcementId: req.body.id, phoneId: req.body.phoneId}).then(view => {
+      if (!view) {
+        new View({announcementId: req.body.id, phoneId: req.body.phoneId, date: new Date()}).save();
+        Announcement.updateOne({_id: req.body.id}, {$inc: {views: 1}}).exec();
+      }
     });
 
-    if (!view) {
-      const newView = new View({
-        announcementId: req.body.id,
-        phoneId: req.body.phoneId,
-        date: new Date(),
-      });
+    annonce.views = (annonce.views || 0) + 1;
 
-      await newView.save();
+    const [startCity2, endCity2, user, sum] = await Promise.all([
+      City.findOne({name: annonce.startCity}).lean(),
+      City.findOne({name: annonce.endCity}).lean(),
+      User.findOne({_id: annonce.userId}).select('-password').lean(),
+      Announcement.countDocuments({userId: annonce.userId, active: true}),
+    ]);
 
-      Announcement.updateOne(
-        { _id: req.body.id },
-        { $set: { views: annonce.views ? parseInt(annonce.views) + 1 : 1 } }
-      ).then(
-        () => {
-          console.log("Tout s'est bien passé");
-        },
-        (err) => {
-          console.log(err);
-        }
-      );
-
-      annonce.views = annonce.views ? annonce.views + 1 : 1;
-      console.log("On a fait notre taff");
-    }
-    
-    
-
-    annonce.startCity2 = await City.findOne({ name: annonce.startCity });
-    annonce.endCity2 = await City.findOne({ name: annonce.endCity });
-
-    //console.log(annonce);
-
-    const userObjectId = new ObjectId(annonce.userId);
-
-    const user = await User.findOne({ _id: annonce.userId });
-
-    const sum = await Announcement.countDocuments({
-      userId: user._id,
-      active: true,
-    });
+    annonce.startCity2 = startCity2;
+    annonce.endCity2 = endCity2;
 
     res.status(200).json({ status: 0, annonce, sum, user });
-      
-    }else{
-      
-      res.status(200).json({status: 1});
-    }
-
 
   } catch (e) {
     console.log(e);
@@ -539,107 +404,62 @@ exports.getAnnoncee = async (req, res) => {
 */
 
 exports.annoncesRecherche = async (req, res) => {
-  console.log("la recherche", req.body);
-
-  // console.log(monthNameToNumber(req.body.month))
-
   let month = monthNameToNumber(req.body.month);
   let year = req.body.year;
 
   let startDate;
-
-  console.log("le mois", new Date().getMonth());
-
-  if (
-    year === new Date().getFullYear() &&
-    month - 1 === new Date().getMonth()
-  ) {
+  if (year === new Date().getFullYear() && month - 1 === new Date().getMonth()) {
     startDate = new Date();
   } else {
     startDate = new Date(year, month - 1, 1);
   }
-
   const endDate = new Date(year, month, 1);
 
   try {
-
-    
-   let  start = req.body.start; 
-    let end = req.body.end; 
+    let start = req.body.start;
+    let end = req.body.end;
     let finalStartCities;
-    let finalEndCities; 
+    let finalEndCities;
 
     if(req.body.type === "container"){
+      const [startCountry, endCountry] = await Promise.all([
+        Country.findOne({name: start}).lean(),
+        Country.findOne({name: end}).lean(),
+      ]);
 
-      let startCountry = await Country.findOne({name: start}); 
-      let endCountry = await Country.findOne({name: end}); 
+      const [startCities, endCities] = await Promise.all([
+        City.find({country_id: startCountry._id}).lean(),
+        City.find({country_id: endCountry._id}).lean(),
+      ]);
 
-      let startCities = await City.find({country_id: startCountry._id}); 
-      let endCities = await City.find({country_id: endCountry._id});
-
-       finalStartCities = startCities.map(item => {
-
-          return item.name
-
-      }); 
-
-       finalEndCities = endCities.map(item => {
-
-        return item.name
-
-    }); 
-
- 
-
+      finalStartCities = startCities.map(item => item.name);
+      finalEndCities = endCities.map(item => item.name);
     }
 
-    console.log('les cities final', finalStartCities);
-
-    console.log('les cities final', finalEndCities);
-
-    
-
-    const annoncesCount = await Announcement.countDocuments({
-      startCity: req.body.type === 'container' ? {$in: finalStartCities} :  req.body.start,
-      endCity: req.body.type === 'container' ? {$in: finalEndCities} :  req.body.end,
-      dateOfDeparture: {
-        $gte: startDate,
-        $lt: endDate,
-      },
+    const query = {
+      startCity: req.body.type === 'container' ? {$in: finalStartCities} : req.body.start,
+      endCity: req.body.type === 'container' ? {$in: finalEndCities} : req.body.end,
+      dateOfDeparture: { $gte: startDate, $lt: endDate },
       status: req.body.type,
       active: true,
+    };
+
+    const [annoncesCount, annonces] = await Promise.all([
+      Announcement.countDocuments(query),
+      Announcement.find(query).sort({date: 1}).skip(req.body.startAt).limit(10).lean(),
+    ]);
+
+    const cityNames = [...new Set([...annonces.map(a => a.startCity), ...annonces.map(a => a.endCity)])];
+    const cities = await City.find({name: {$in: cityNames}}).lean();
+    const cityMap = new Map(cities.map(c => [c.name, c]));
+    annonces.forEach(a => { a.startCity2 = cityMap.get(a.startCity) || null; a.endCity2 = cityMap.get(a.endCity) || null; });
+
+    res.status(200).json({
+      status: 0,
+      annonces,
+      count: annoncesCount,
+      startAt: annonces.length === 10 ? parseInt(req.body.startAt) + 10 : null,
     });
-
-    const annonces = await Announcement.find({
-      startCity: req.body.type === 'container' ? {$in: finalStartCities} :  req.body.start,
-      endCity: req.body.type === 'container' ? {$in: finalEndCities} :  req.body.end,
-      dateOfDeparture: {
-        $gte: startDate,
-        $lt: endDate,
-      },
-      status: req.body.type,
-      active: true,
-    })
-      .sort({ date: 1 })
-      .skip(req.body.startAt)
-      .limit(10);
-
-    for (let kilo of annonces) {
-      kilo.startCity2 = await City.findOne({ name: kilo.startCity });
-      kilo.endCity2 = await City.findOne({ name: kilo.endCity });
-    }
-
-    res
-      .status(200)
-      .json({
-        status: 0,
-        annonces,
-        count: annoncesCount,
-        startAt:
-          annonces.length === 10 ? parseInt(req.body.startAt) + 10 : null,
-      });
-
-    //console.log(annonces);
   } catch (e) {
     console.log(e);
     res.status(505).json({ e });
@@ -825,17 +645,14 @@ exports.toggleActiveStatus = async (req, res) => {
 
 exports.addAnnouncementWithPdf = async (req, res) => {
   
-  console.log(req.body);
   
   try{
   const draft = [
     `${req.protocol}s://${req.get("host")}/pdf_documents/${req.file.filename}`,
   ];
-  //console.log(draft);
 
   const dateOfDeparture = new Date(req.body.dateOfDeparture);
     
-    console.log(req.body.dateOfDeparture);
     
   // Conversion de coords en objet JSON
   const coords = req.body.coords ? JSON.parse(req.body.coords) : null;
@@ -859,7 +676,6 @@ exports.addAnnouncementWithPdf = async (req, res) => {
  
     
       
-  console.log("month", new Date(dateOfDeparture).getMonth() + 2)
     
   announcement.save().then(
     async (annoncee) => {
@@ -884,15 +700,10 @@ exports.modifierAnnonceImage = async (req, res) => {
      
   
       try{
-               console.log("On se concentre", req.body);
-                console.log(req.file);
-               console.log("Yes");
               if ((!req.files || !Array.isArray(req.files)) && !req.file) {
                 return res.status(400).json({ error: "Aucun fichier téléchargé" });
             }
 
-            // console.log(req.files);
-            //console.log(req.body);
 
             let draft = [];
         
@@ -900,14 +711,12 @@ exports.modifierAnnonceImage = async (req, res) => {
         
             if(req.file){
               
-              console.log("On y est");
               
                 draft.push(`${req.protocol}s://${req.get("host")}/pdf_documents/${req.file.filename}`);
                
               
             }else{
               
-                  console.log("On y est pas");
               
               for (let file of req.files) {
                 draft.push(`${req.protocol}s://${req.get("host")}/images/${file.filename}`);
@@ -919,14 +728,12 @@ exports.modifierAnnonceImage = async (req, res) => {
 
 
         
-            console.log(draft);
             let body = req.body; 
             const {_id} = req.body; 
            
         
             body = {...body, active: false, draft, modifyDate: new Date()}
         
-            console.log("le body", body);
         
             delete body._id; 
         
@@ -945,13 +752,10 @@ exports.modifierAnnonceImage = async (req, res) => {
 
 exports.addAnnouncementWithImages = (req, res) => {
   // Vérification que req.files existe et est un tableau
-  console.log(req.body);
   if (!req.files || !Array.isArray(req.files)) {
     return res.status(400).json({ error: "Aucun fichier téléchargé" });
   }
 
-  // console.log(req.files);
-  //console.log(req.body);
 
   let draft = [];
 
@@ -993,12 +797,10 @@ exports.addAnnouncementWithImages = (req, res) => {
 exports.addAnnouncement = (req, res) => {
   
   if (req.body.status === "kilos") {
-    //console.log("la dix", req.body);
 
     // Convertir dateOfDeparture en objet Date
     const dateOfDeparture = new Date(req.body.dateOfDeparture);
     
-   // console.log(req.body);
 
     const announcement = new Announcement({
       startCity: req.body.startCity,
@@ -1024,15 +826,10 @@ exports.addAnnouncement = (req, res) => {
       .save()
       .then(async (annoncee) => {
       
-        console.log("depart", req.body.startCity); 
-        console.log("depart", req.body.endCity); 
-        console.log("depart", (new Date(dateOfDeparture).getMonth() + 1).toString()); 
-        console.log("depart", new Date(dateOfDeparture).getFullYear().toString()); 
       
           const search = await Search.findOne({startCity: req.body.startCity, endCity: req.body.endCity, status: "kilos",
           year: new Date(dateOfDeparture).getFullYear().toString(), $or: [{month: (new Date(dateOfDeparture).getMonth()).toString()}, {month: (new Date(dateOfDeparture).getMonth() + 1).toString()}]});
 
-      console.log("la recherche", search);
       
       
   if(search){
@@ -1056,8 +853,6 @@ exports.addAnnouncement = (req, res) => {
     
      const badgee = await Notification.countDocuments({read: false, receiverId: userr._id})
     
-      console.log("le bon truc ", badgee);
-    //  console.log()
     
       for(let tokennn of userr.fcmToken){
         
@@ -1074,45 +869,29 @@ exports.addAnnouncement = (req, res) => {
         res.status(500).json({ error: err.message });
       });
   } else {
-    console.log(req.body);
-    console.log(req.file);
   }
 };
 
 exports.getAnnouncementsById = async (req, res) => {
-  
-  console.log("On respecte ca"); 
-  //console.log("On commence");
-
   try {
-    
-    await Announcement.updateMany({userId: req.auth.userId, active: true}, {$set: {read: true}}); 
-    await Notification.updateMany({receiverId: req.auth.userId, title: "Félicitations"}, {$set: {read: true}}); 
-    
-    const containers = await Announcement.find({
-      userId: req.auth.userId,
-      active: true,
-      status: "container",
-    })
-      .sort({ date: -1 })
-      .limit(6);
-    const kilos = await Announcement.find({
-      userId: req.auth.userId,
-      active: true,
-      status: "kilos",
-    })
-      .sort({ date: -1 })
-      .limit(6);
+    const userId = req.auth.userId;
 
-    for (let container of containers) {
-      container.startCity2 = await City.findOne({ name: container.startCity });
-      container.endCity2 = await City.findOne({ name: container.endCity });
-    }
+    const [, , containers, kilos] = await Promise.all([
+      Announcement.updateMany({userId, active: true}, {$set: {read: true}}),
+      Notification.updateMany({receiverId: userId, title: "Félicitations"}, {$set: {read: true}}),
+      Announcement.find({userId, active: true, status: "container"}).sort({date: -1}).limit(6).lean(),
+      Announcement.find({userId, active: true, status: "kilos"}).sort({date: -1}).limit(6).lean(),
+    ]);
 
-    for (let kilo of kilos) {
-      kilo.startCity2 = await City.findOne({ name: kilo.startCity });
-      kilo.endCity2 = await City.findOne({ name: kilo.endCity });
-    }
+    const cityNames = [...new Set([
+      ...containers.map(c => c.startCity), ...containers.map(c => c.endCity),
+      ...kilos.map(k => k.startCity), ...kilos.map(k => k.endCity),
+    ])];
+    const cities = await City.find({name: {$in: cityNames}}).lean();
+    const cityMap = new Map(cities.map(c => [c.name, c]));
+
+    containers.forEach(c => { c.startCity2 = cityMap.get(c.startCity) || null; c.endCity2 = cityMap.get(c.endCity) || null; });
+    kilos.forEach(k => { k.startCity2 = cityMap.get(k.startCity) || null; k.endCity2 = cityMap.get(k.endCity) || null; });
 
     res.status(200).json({
       status: 0,
@@ -1128,8 +907,6 @@ exports.getAnnouncementsById = async (req, res) => {
 };
 
 exports.moreAnnouncements = async (req, res) => {
-  //console.log(req.body);
-
   try {
     const annonces = await Announcement.find({
       userId: req.auth.userId,
@@ -1138,21 +915,13 @@ exports.moreAnnouncements = async (req, res) => {
     })
       .sort({ date: -1 })
       .skip(req.body.skip)
-      .limit(6);
+      .limit(6)
+      .lean();
 
-    if (req.body.status === "kilos") {
-      for (let kilo of annonces) {
-        kilo.startCity2 = await City.findOne({ name: kilo.startCity });
-        kilo.endCity2 = await City.findOne({ name: kilo.endCity });
-      }
-    } else {
-      for (let container of annonces) {
-        container.startCity2 = await City.findOne({
-          name: container.startCity,
-        });
-        container.endCity2 = await City.findOne({ name: container.endCity });
-      }
-    }
+    const cityNames = [...new Set([...annonces.map(a => a.startCity), ...annonces.map(a => a.endCity)])];
+    const cities = await City.find({name: {$in: cityNames}}).lean();
+    const cityMap = new Map(cities.map(c => [c.name, c]));
+    annonces.forEach(a => { a.startCity2 = cityMap.get(a.startCity) || null; a.endCity2 = cityMap.get(a.endCity) || null; });
 
     res.status(200).json({
       status: 0,
@@ -1162,7 +931,7 @@ exports.moreAnnouncements = async (req, res) => {
     });
   } catch (e) {
     console.log(e);
-    res.status(505).son({ e });
+    res.status(505).json({ e });
   }
 };
 
@@ -1173,21 +942,10 @@ exports.getAnnonces = async (req, res) => {
     const limit = req.body.three ? 3 : 60;
 
     // 1️⃣ Récupérer les annonces de conteneurs et de kilos
-    const containers = await Announcement.find({
-      active: true,
-      status: "container",
-      dateOfDeparture: { $gte: currentDate },
-    })
-      .sort({ date: -1 })
-      .limit(limit);
-
-    const kilos = await Announcement.find({
-      active: true,
-      status: "kilos",
-      dateOfDeparture: { $gte: currentDate },
-    })
-      .sort({ date: -1 })
-      .limit(limit);
+    const [containers, kilos] = await Promise.all([
+      Announcement.find({active: true, status: "container", dateOfDeparture: { $gte: currentDate }}).sort({date: -1}).limit(limit).lean(),
+      Announcement.find({active: true, status: "kilos", dateOfDeparture: { $gte: currentDate }}).sort({date: -1}).limit(limit).lean(),
+    ]);
 
     // 2️⃣ Récupérer toutes les villes nécessaires
     const cityNames = [
@@ -1215,26 +973,12 @@ exports.getAnnonces = async (req, res) => {
       ...new Set([...containers.map(c => c.userId), ...kilos.map(k => k.userId)])
     ];
 
-    console.log(allUserIds);
-    console.log("On se voit bien");
-
-    const users = await User.find({ _id: { $in: allUserIds } }).lean();
-
-    console.log(users);
-
+    const users = await User.find({ _id: { $in: allUserIds } }).select('-password').lean();
     const userMap = new Map(users.map(u => [u._id.toString(), u]));
 
-    // 4️⃣ Ajouter l'utilisateur à chaque annonce
-    containers.forEach(c => {
-      c.user = userMap.get(c.userId) || null;
-    });
-    kilos.forEach(k => {
-      k.user = userMap.get(k.userId) || null;
-    });
+    containers.forEach(c => { c.user = userMap.get(c.userId) || null; });
+    kilos.forEach(k => { k.user = userMap.get(k.userId) || null; });
 
-    console.log(containers);
-
-    // 5️⃣ Répondre avec les annonces enrichies
     res.status(200).json({ status: 0, kilos, containers });
   } catch (err) {
     console.error(err);
@@ -1245,23 +989,17 @@ exports.getAnnonces = async (req, res) => {
 
 exports.getAnnonce = async (req, res) => {
   try {
-    //console.log(req.body)
+    const annonce = await Announcement.findOne({ _id: req.body.id }).lean();
 
-    const annonce = await Announcement.findOne({ _id: req.body.id });
+    const [startCity2, endCity2, user, sum] = await Promise.all([
+      City.findOne({name: annonce.startCity}).lean(),
+      City.findOne({name: annonce.endCity}).lean(),
+      User.findOne({_id: annonce.userId}).select('-password').lean(),
+      Announcement.countDocuments({userId: annonce.userId, active: true}),
+    ]);
 
-    annonce.startCity2 = await City.findOne({ name: annonce.startCity });
-    annonce.endCity2 = await City.findOne({ name: annonce.endCity });
-
-    //console.log(annonce);
-
-    const userObjectId = new ObjectId(annonce.userId);
-
-    const user = await User.findOne({ _id: annonce.userId });
-
-    const sum = await Announcement.countDocuments({
-      userId: user._id,
-      active: true,
-    });
+    annonce.startCity2 = startCity2;
+    annonce.endCity2 = endCity2;
 
     res.status(200).json({ status: 0, annonce, sum, user });
   } catch (e) {
@@ -1292,18 +1030,14 @@ function monthNameToNumber(monthName) {
 
 /*
 exports.annoncesRecherche = async (req, res) => {
-  console.log(req.body);
   
-  console.log("est ce que tu t'en rend compte ?")
 
-  // console.log(monthNameToNumber(req.body.month))
 
   let month = monthNameToNumber(req.body.month);
   let year = req.body.year;
 
   let startDate;
 
-  console.log("le mois", new Date().getMonth());
 
   if (
     year === new Date().getFullYear() &&
@@ -1369,7 +1103,6 @@ exports.annoncesRecherche = async (req, res) => {
       startAt: annonces.length === 10 ? parseInt(req.body.startAt) + 10 : null,
     });
 
-    //console.log(annonces);
   } catch (e) {
     console.log(e);
     res.status(505).json({ e });
@@ -1537,7 +1270,6 @@ exports.toggleActiveStatus = async (req, res) => {
         const search = await Search.findOne({startCity: announcement.startCity, endCity: announcement.endCity, type: announcement.type,
           year: new Date(announcement.dateOfDeparture).getFullYear().toString(), $or: [{month: new Date(announcement.dateOfDeparture).getMonth().toString()}, {month: (new Date(announcement.dateOfDeparture).getMonth() + 1).toString()}]});
 
-      console.log("la recherche", search);
       
       
   if(search){

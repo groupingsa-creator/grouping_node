@@ -9,4 +9,6 @@ const viewSchema = mongoose.Schema({
 })
 
 
+viewSchema.index({ announcementId: 1, phoneId: 1 });
+
 module.exports = mongoose.model("View", viewSchema);

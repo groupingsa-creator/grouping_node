@@ -26,10 +26,16 @@ const AnnouncementSchema = mongoose.Schema({
     devise: {type: String}, 
     fileName: {type: String}, 
     fileType: {type: String}, 
-    modifyDate: {type: Date}
+    modifyDate: {type: Date}, 
+    nomdutransiaire: {type: String}
     
     
 })
+
+AnnouncementSchema.index({ userId: 1, active: 1, status: 1, date: -1 });
+AnnouncementSchema.index({ active: 1, status: 1, dateOfDeparture: -1, date: -1 });
+AnnouncementSchema.index({ startCity: 1, endCity: 1, dateOfDeparture: 1, status: 1, active: 1 });
+AnnouncementSchema.index({ userId: 1, read: 1, active: 1 });
 
 AnnouncementSchema.pre('save', function(next) {
     if (this.kiloPrice && typeof this.kiloPrice === 'string') {
