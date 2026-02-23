@@ -8,7 +8,7 @@ const { sendPushNotification } = require("../utils/fcm");
 
 const connectedUsers = new Map();
 
-module.exports = function chatSocket(io) {
+function chatSocket(io) {
   io.use((socket, next) => {
     const token = socket.handshake.auth?.token;
     if (!token) return next(new Error("Token manquant"));
@@ -47,12 +47,13 @@ module.exports = function chatSocket(io) {
       const text = message?.text ? String(message.text) : "";
 
       // ✅ pending (toujours sender string)
+      const mediaType = message?.type || "image";
       const pendingMessage = id
         ? {
             clientId: safeClientId,
             text,
             url,
-            type: "image",
+            type: mediaType,
             date: new Date(),
             sender: senderId,
             status: "pending",
@@ -131,7 +132,7 @@ module.exports = function chatSocket(io) {
           await sendPushNotification(
             t,
             sender?.name || "Nouveau message",
-            id ? "Vous a envoyé une image" : text,
+            id ? (mediaType === "audio" ? "Vous a envoyé un message vocal" : mediaType === "document" ? "Vous a envoyé un document" : "Vous a envoyé une image") : text,
             finalBadge,
             { status: "5", senderId, badge: String(finalBadge) }
           );
@@ -167,4 +168,6 @@ module.exports = function chatSocket(io) {
       console.log(`🔌 ${socket.userId} déconnecté`);
     });
   });
-};
+}
+
+module.exports = { chatSocket, connectedUsers };

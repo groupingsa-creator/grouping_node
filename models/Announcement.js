@@ -24,10 +24,11 @@ const AnnouncementSchema = mongoose.Schema({
     views: {type: Number}, 
     read: {type: Boolean, default: false}, 
     devise: {type: String}, 
-    fileName: {type: String}, 
-    fileType: {type: String}, 
-    modifyDate: {type: Date}, 
-    nomdutransiaire: {type: String}
+    fileName: {type: String},
+    fileType: {type: String},
+    modifyDate: {type: Date},
+    nomdutransiaire: {type: String},
+    transitaire: {type: String, default: null}
     
     
 })
