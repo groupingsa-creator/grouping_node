@@ -1287,7 +1287,7 @@ exports.toggleActiveStatus = async (req, res) => {
       
       const user = await User.findOne({_id: announcement.userId}); 
       
-        const search = await Search.findOne({startCity: announcement.startCity, endCity: announcement.endCity, type: announcement.type,
+        const search = await Search.findOne({startCity: announcement.startCity, endCity: announcement.endCity, status: announcement.status,
           year: new Date(announcement.dateOfDeparture).getFullYear().toString(), $or: [{month: new Date(announcement.dateOfDeparture).getMonth().toString()}, {month: (new Date(announcement.dateOfDeparture).getMonth() + 1).toString()}]});
 
       
