@@ -454,6 +454,19 @@ exports.annoncesRecherche = async (req, res) => {
     const cityMap = new Map(cities.map(c => [c.name, c]));
     annonces.forEach(a => { a.startCity2 = cityMap.get(a.startCity) || null; a.endCity2 = cityMap.get(a.endCity) || null; });
 
+    if(annonces.length === 0){
+      const newSearch = Search({
+        startCity: req.body.start,
+        endCity: req.body.end,
+        month,
+        year,
+        status: req.body.type,
+        userId: req.auth.userId,
+        date: new Date()
+      })
+      await newSearch.save();
+    }
+
     res.status(200).json({
       status: 0,
       annonces,
