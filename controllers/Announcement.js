@@ -684,6 +684,7 @@ exports.addAnnouncementWithPdf = async (req, res) => {
     date: new Date(),
     active: false,
     coords: coords,
+    bookingReference: req.body.bookingReference || null,
   });
     
  
@@ -794,6 +795,7 @@ exports.addAnnouncementWithImages = (req, res) => {
     date: new Date(),
     active: false,
     coords: coords,
+    bookingReference: req.body.bookingReference || null,
   });
 
   announcement.save().then(

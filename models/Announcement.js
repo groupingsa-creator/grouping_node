@@ -28,9 +28,9 @@ const AnnouncementSchema = mongoose.Schema({
     fileType: {type: String},
     modifyDate: {type: Date},
     nomdutransiaire: {type: String},
-    transitaire: {type: String, default: null}
-    
-    
+    transitaire: {type: String, default: null},
+    bookingReference: {type: String, default: null}
+
 })
 
 AnnouncementSchema.index({ userId: 1, active: 1, status: 1, date: -1 });
