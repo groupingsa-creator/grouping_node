@@ -100,7 +100,12 @@ exports.getNotifications = async (req, res) => {
 
 exports.deleteNotif = async (req, res) => {
     try {
-      await Notification.updateOne({_id: req.body._id}, {$set: {desactived: true}});
+      console.log("deleteNotif _id:", req.body._id);
+      const result = await Notification.updateOne({_id: req.body._id}, {$set: {desactived: true}});
+      console.log("deleteNotif result:", result);
+      if(result.modifiedCount === 0){
+        return res.status(404).json({status: 1, message: "Notification non trouvée"});
+      }
       res.status(200).json({status: 0});
     } catch(e) {
       console.log(e);
