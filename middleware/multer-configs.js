@@ -10,14 +10,14 @@ try {
       callback(null, "pdf_documents"); // Définissez le répertoire de destination pour les PDF
     },
     filename: (req, file, callback) => {
-      const name = file.originalname.split(" ").join("_");
+      const nameWithoutExt = file.originalname.replace(/\.[^/.]+$/, "").split(" ").join("_");
 
       const extension = MIME_TYPES[file.mimetype];
 
-      const filename = name + Date.now() + "." + extension;
+      const filename = nameWithoutExt + "_" + Date.now() + "." + extension;
       console.log("Nom du fichier enregistré :", filename);
 
-      callback(null, name + Date.now() + "." + extension);
+      callback(null, filename);
     },
   });
 

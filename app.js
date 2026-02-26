@@ -35,7 +35,17 @@ mongoose.connect(`mongodb+srv://fideleNdzime:${process.env.MONGOPASS}@cluster0.r
       { $set: { fcmToken: [] } }
     );
     if (result.modifiedCount > 0) {
-      console.log(`🔄 Migration fcmToken : ${result.modifiedCount} utilisateur(s) mis à jour.`);
+      console.log(`Migration fcmToken : ${result.modifiedCount} utilisateur(s) mis a jour.`);
+    }
+
+    // Nettoyage des URLs PDF cassées (double extension .pdf<timestamp>.pdf)
+    const Announcement = require("./models/Announcement");
+    const cleanResult = await Announcement.updateMany(
+      { "draft.0": { $regex: /\.pdf\d+\.pdf$/ } },
+      { $set: { draft: [] } }
+    );
+    if (cleanResult.modifiedCount > 0) {
+      console.log(`Nettoyage: ${cleanResult.modifiedCount} annonces avec URLs cassees corrigees`);
     }
   })
   .catch((err) => console.log('Connexion à MongoDB échouée !', err));

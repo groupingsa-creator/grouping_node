@@ -28,9 +28,11 @@ router.post("/ajouterunconteneur", auth, multer2,  announcementCtrl.addAnnouncem
 router.post("/modifierannonceimg", auth, multer2, announcementCtrl.modifierAnnonceImage)
 router.post("/modifierannoncepdf", auth, multer, announcementCtrl.modifierAnnonceImage)
 router.post("/modifierkilo", auth, announcementCtrl.modifierUneAnnonceKilo);
+router.post("/cleanbrokenurls", auth, announcementCtrl.cleanBrokenDraftUrls);
+router.post("/updateactivecontainerwithfile", auth, multer, announcementCtrl.toggleActiveStatusWithFile);
 
 
-module.exports = router; 
+module.exports = router;
 
 
  
