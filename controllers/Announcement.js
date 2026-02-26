@@ -9,6 +9,25 @@ const Notification = require("../models/Notification")
 const Search = require("../models/Search");
 const { sendNotificationToUser } = require("../utils/fcm");
 
+// Émet un événement socket pour notifier le frontend en temps réel
+const emitSocketNotification = (req, receiverId, notification) => {
+  try {
+    const io = req.app.get("io");
+    const connectedUsers = req.app.get("connectedUsers");
+    if (!io || !connectedUsers) return;
+
+    const receiverSocketId = connectedUsers.get(String(receiverId));
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("newNotification", {
+        receiverId: String(receiverId),
+        notification,
+      });
+    }
+  } catch (e) {
+    // Silencieux : ne pas bloquer le flux principal
+  }
+};
+
 exports.modifierUneAnnonceKilo = async (req, res) => {
   
   
@@ -1300,6 +1319,7 @@ exports.toggleActiveStatus = async (req, res) => {
       })
 
       await newNotif.save();
+      emitSocketNotification(req, userr._id, newNotif);
 
       try {
         await sendNotificationToUser(userr._id, "Bonne nouvelle", "Un container correspondant à une de vos recherche a été trouvé", badgee, {annonceId: String(announcement._id), "status": `1`, "badge": `${badgee}`});
@@ -1320,6 +1340,7 @@ exports.toggleActiveStatus = async (req, res) => {
       })
 
       await newNotification.save();
+      emitSocketNotification(req, user._id, newNotification);
 
       const badge = await Notification.countDocuments({receiverId: user._id, read: false});
 
@@ -1473,6 +1494,7 @@ exports.toggleActiveStatusWithFile = async (req, res) => {
         });
 
         await newNotif.save();
+        emitSocketNotification(req, userr._id, newNotif);
 
         try {
           await sendNotificationToUser(userr._id, "Bonne nouvelle", "Un container correspondant à une de vos recherche a été trouvé", badgee, { annonceId: String(announcement._id), status: "1", badge: `${badgee}` });
@@ -1492,6 +1514,7 @@ exports.toggleActiveStatusWithFile = async (req, res) => {
       });
 
       await newNotification.save();
+      emitSocketNotification(req, user._id, newNotification);
 
       const badge = await Notification.countDocuments({ receiverId: user._id, read: false });
 
@@ -1589,6 +1612,7 @@ exports.toggleActiveStatusWithImage = async (req, res) => {
         });
 
         await newNotif.save();
+        emitSocketNotification(req, userr._id, newNotif);
 
         try {
           await sendNotificationToUser(userr._id, "Bonne nouvelle", "Un container correspondant à une de vos recherche a été trouvé", badgee, { annonceId: String(announcement._id), status: "1", badge: `${badgee}` });
@@ -1608,6 +1632,7 @@ exports.toggleActiveStatusWithImage = async (req, res) => {
       });
 
       await newNotification.save();
+      emitSocketNotification(req, user._id, newNotification);
 
       const badge = await Notification.countDocuments({ receiverId: user._id, read: false });
 
