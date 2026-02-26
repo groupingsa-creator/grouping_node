@@ -190,39 +190,71 @@ exports.changePhoto = async (req, res) => {
 
 
  exports.updateFcmToken = async (req, res) => {
-  
+
   console.log("On est prêt")
-   
+
    try{
-     
-      const {fcmToken, deviceId} = req.body; 
-   
-      const userId = req.auth.userId; 
-     
+
+      const {fcmToken, deviceId} = req.body;
+
+      // Rejeter les appels avec fcmToken ou deviceId manquant/vide
+      if (!fcmToken || !deviceId) {
+        return res.status(400).json({status: 1, message: "fcmToken et deviceId sont requis."});
+      }
+
+      const userId = req.auth.userId;
+
         const user = await User.findById(userId);
-     
+
+        if (!user) {
+          return res.status(404).json({status: 1, message: "Utilisateur introuvable."});
+        }
+
        user.fcmToken = user.fcmToken ? user.fcmToken : [];
-       user.fcmToken = user.fcmToken.filter(t => t.deviceId !== deviceId);
+
+       // Supprimer l'ancien token pour ce device ET supprimer les doublons de ce fcmToken sur d'autres devices
+       user.fcmToken = user.fcmToken.filter(t => t.deviceId !== deviceId && t.fcmToken !== fcmToken);
 
        user.fcmToken.push({ fcmToken, deviceId });
-       
-     
-       await user.save(); 
-     
+
+
+       await user.save();
+
        res.status(200).json({status: 0, message: "Mise à jour effectuée avec succès", user});
-   
-     
-     
+
+
+
    }catch(err){
-     
-       console.log(err); 
+
+       console.log(err);
        res.status(505).json({err})
    }
-  
+
 }
  
  
  
+
+/**
+ * Migration : initialise fcmToken à [] pour tous les users qui ont fcmToken undefined/null.
+ * A appeler une seule fois via POST /api/user/migrateFcmTokens (protégé par auth).
+ */
+exports.migrateFcmTokens = async (req, res) => {
+  try {
+    const result = await User.updateMany(
+      { $or: [{ fcmToken: { $exists: false } }, { fcmToken: null }] },
+      { $set: { fcmToken: [] } }
+    );
+
+    res.status(200).json({
+      status: 0,
+      message: `Migration terminée. ${result.modifiedCount} utilisateur(s) mis à jour.`
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ status: 99, message: "Erreur lors de la migration", err });
+  }
+};
 
 const genererCode = () => {
   var code = "";

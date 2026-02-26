@@ -4,7 +4,7 @@ const { addMessageweb } = require("../controllers/Message");
 const User = require("../models/User");
 const Message = require("../models/Messages");
 const Notification = require("../models/Notification");
-const { sendPushNotification } = require("../utils/fcm");
+const { sendNotificationToUser } = require("../utils/fcm");
 
 const connectedUsers = new Map();
 
@@ -104,40 +104,25 @@ function chatSocket(io) {
         });
 
         // 4) Push notif FCM
-        console.log("PUSH step 1: find sender", senderId);
         const sender = await User.findById(senderId);
-        
-        console.log("PUSH step 2: find receiver", receiverIdStr);
-        const receiver = await User.findById(receiverIdStr);
-        
-        console.log("PUSH step 3: count unread messages");
+
         const unreadMessages = await Message.countDocuments({ user2Id: receiverIdStr, read: false });
-        
-        console.log("PUSH step 4: count unread notifications");
         const unreadNotifications = await Notification.countDocuments({ receiverId: receiverIdStr, read: false });
-        
+
+
         const finalBadge = unreadMessages + unreadNotifications;
-        console.log("PUSH step 5: finalBadge =", finalBadge);
-        
-        console.log("PUSH step 6: receiver.fcmToken =", receiver?.fcmToken);
-        
-        const tokens = (receiver?.fcmToken || [])
-          .map((t) => (typeof t === "string" ? t : t?.fcmToken))
-          .filter(Boolean);
-        
-        console.log("PUSH step 7: tokens count =", tokens.length, tokens);
-        
-        for (const t of tokens) {
-          console.log("PUSH step 8: sending to", t.slice(0, 12), "...");
-          await sendPushNotification(
-            t,
-            sender?.name || "Nouveau message",
-            id ? (mediaType === "audio" ? "Vous a envoyé un message vocal" : mediaType === "document" ? "Vous a envoyé un document" : "Vous a envoyé une image") : text,
-            finalBadge,
-            { status: "5", senderId, badge: String(finalBadge) }
-          );
-        }
-        console.log("PUSH step 9: done");
+
+        const notifBody = id
+          ? (mediaType === "audio" ? "Vous a envoyé un message vocal" : mediaType === "document" ? "Vous a envoyé un document" : "Vous a envoyé une image")
+          : text;
+
+        await sendNotificationToUser(
+          receiverIdStr,
+          sender?.name || "Nouveau message",
+          notifBody,
+          finalBadge,
+          { status: "5", senderId, badge: String(finalBadge) }
+        );
         
 
         // 5) Notification socket directe si receiver online

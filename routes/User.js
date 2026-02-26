@@ -28,5 +28,6 @@ router.post("/changepassword", auth, userCtrl.changePassword);
 router.post("/gotoemail", userCtrl.goToEmail);
 router.post("/updateemail", userCtrl.updateEmail); 
 router.post("/contactus", auth, userCtrl.contactUs)
+router.post("/migrateFcmTokens", auth, userCtrl.migrateFcmTokens)
 
 module.exports = router;

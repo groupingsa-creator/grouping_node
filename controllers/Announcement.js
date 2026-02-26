@@ -5,11 +5,9 @@ const User = require("../models/User");
 const mongoose = require("mongoose");
 const { ObjectId } = require("mongodb");
 const View = require("../models/View");
-const fs = require("fs");
-const http = require("https");
 const Notification = require("../models/Notification")
 const Search = require("../models/Search");
-const { sendPushNotification } = require("../utils/fcm");
+const { sendNotificationToUser } = require("../utils/fcm");
 
 exports.modifierUneAnnonceKilo = async (req, res) => {
   
@@ -810,18 +808,13 @@ exports.addAnnouncement = (req, res) => {
       })
       
       await newNotif.save();
-    
+
      const badgee = await Notification.countDocuments({read: false, receiverId: userr._id})
-    
-    
-      for(let tokennn of userr.fcmToken){
-        
-          await sendPushNotification(tokennn.fcmToken, "Bonne nouvelle", "Un container correspondant à une de vos recherche a été trouvé", badgee, {annonceId: annoncee._id, "status": `1`, "badge": `${badgee}`} )
-      
-      }
-    
+
+      await sendNotificationToUser(userr._id, "Bonne nouvelle", "Un container correspondant à une de vos recherche a été trouvé", badgee, {annonceId: String(annoncee._id), "status": `1`, "badge": `${badgee}`});
+
   }
-        
+
         res.status(201).json({ status: 0 });
       })
       .catch((err) => {
@@ -1270,38 +1263,29 @@ exports.toggleActiveStatus = async (req, res) => {
       })
       
       await newNotif.save();
-    
-      for(let tokennn of userr.fcmToken){
-        
-          await sendPushNotification(tokennn.fcmToken, "Bonne nouvelle", "Un container correspondant à une de vos recherche a été trouvé", badgee , {annonceId: announcement._id,  "status": `1`, "badge": `${badgee}`} )
-      
-      }
-    
+
+      await sendNotificationToUser(userr._id, "Bonne nouvelle", "Un container correspondant à une de vos recherche a été trouvé", badgee, {annonceId: String(announcement._id), "status": `1`, "badge": `${badgee}`});
+
   }
       
-      const tokens = user.fcmToken; 
-      
       const newNotification = Notification({
-        
-          title: "Félicitations", 
-          body: "L'annonce sur votre conteneur est désormais active et visible pour tous. Retrouvez là dans vos annonces", 
-          date: new Date(), 
-          read: false, 
-          view: false, 
-          authorId: "grouping", 
+
+          title: "Félicitations",
+          body: "L'annonce sur votre conteneur est désormais active et visible pour tous. Retrouvez là dans vos annonces",
+          date: new Date(),
+          read: false,
+          view: false,
+          authorId: "grouping",
           receiverId: user._id
       })
-      
+
       await newNotification.save();
-      
-      const badge = await Notification.countDocuments({receiverId: user._id, read: false}); 
-      
-      for(let token of tokens){
-        
-          await sendPushNotification(token.fcmToken,"Félicitations" , 
-            "L'annonce sur votre conteneur est désormais active et visible pour tous. Retrouvez-la dans vos annonces", 
-            badge, {"status": `0`, "badge": `${badge}`})
-      }
+
+      const badge = await Notification.countDocuments({receiverId: user._id, read: false});
+
+      await sendNotificationToUser(user._id, "Félicitations",
+        "L'annonce sur votre conteneur est désormais active et visible pour tous. Retrouvez-la dans vos annonces",
+        badge, {"status": `0`, "badge": `${badge}`});
 
     }
 
