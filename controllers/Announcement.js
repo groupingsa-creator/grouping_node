@@ -432,8 +432,8 @@ exports.annoncesRecherche = async (req, res) => {
         City.find({country_id: endCountry._id}).lean(),
       ]);
 
-      finalStartCities = startCities.map(item => item.name);
-      finalEndCities = endCities.map(item => item.name);
+      finalStartCities = [...startCities.map(item => item.name), start];
+      finalEndCities = [...endCities.map(item => item.name), end];
     }
 
     const query = {
@@ -452,7 +452,15 @@ exports.annoncesRecherche = async (req, res) => {
     const cityNames = [...new Set([...annonces.map(a => a.startCity), ...annonces.map(a => a.endCity)])];
     const cities = await City.find({name: {$in: cityNames}}).lean();
     const cityMap = new Map(cities.map(c => [c.name, c]));
-    annonces.forEach(a => { a.startCity2 = cityMap.get(a.startCity) || null; a.endCity2 = cityMap.get(a.endCity) || null; });
+    annonces.forEach(a => {
+      if (a.status === 'container') {
+        a.startCity2 = cityMap.get(a.startCity) || { name: a.startCity, country: a.startCity, code: '' };
+        a.endCity2 = cityMap.get(a.endCity) || { name: a.endCity, country: a.endCity, code: '' };
+      } else {
+        a.startCity2 = cityMap.get(a.startCity) || null;
+        a.endCity2 = cityMap.get(a.endCity) || null;
+      }
+    });
 
     if(annonces.length === 0){
       const newSearch = Search({
@@ -905,7 +913,10 @@ exports.getAnnouncementsById = async (req, res) => {
     const cities = await City.find({name: {$in: cityNames}}).lean();
     const cityMap = new Map(cities.map(c => [c.name, c]));
 
-    containers.forEach(c => { c.startCity2 = cityMap.get(c.startCity) || null; c.endCity2 = cityMap.get(c.endCity) || null; });
+    containers.forEach(c => {
+      c.startCity2 = cityMap.get(c.startCity) || { name: c.startCity, country: c.startCity, code: '' };
+      c.endCity2 = cityMap.get(c.endCity) || { name: c.endCity, country: c.endCity, code: '' };
+    });
     kilos.forEach(k => { k.startCity2 = cityMap.get(k.startCity) || null; k.endCity2 = cityMap.get(k.endCity) || null; });
 
     res.status(200).json({
@@ -936,7 +947,15 @@ exports.moreAnnouncements = async (req, res) => {
     const cityNames = [...new Set([...annonces.map(a => a.startCity), ...annonces.map(a => a.endCity)])];
     const cities = await City.find({name: {$in: cityNames}}).lean();
     const cityMap = new Map(cities.map(c => [c.name, c]));
-    annonces.forEach(a => { a.startCity2 = cityMap.get(a.startCity) || null; a.endCity2 = cityMap.get(a.endCity) || null; });
+    annonces.forEach(a => {
+      if (a.status === 'container') {
+        a.startCity2 = cityMap.get(a.startCity) || { name: a.startCity, country: a.startCity, code: '' };
+        a.endCity2 = cityMap.get(a.endCity) || { name: a.endCity, country: a.endCity, code: '' };
+      } else {
+        a.startCity2 = cityMap.get(a.startCity) || null;
+        a.endCity2 = cityMap.get(a.endCity) || null;
+      }
+    });
 
     res.status(200).json({
       status: 0,
@@ -975,8 +994,8 @@ exports.getAnnonces = async (req, res) => {
     const cityMap = new Map(cities.map(c => [c.name, c]));
 
     containers.forEach(c => {
-      c.startCity2 = cityMap.get(c.startCity) || null;
-      c.endCity2 = cityMap.get(c.endCity) || null;
+      c.startCity2 = cityMap.get(c.startCity) || { name: c.startCity, country: c.startCity, code: '' };
+      c.endCity2 = cityMap.get(c.endCity) || { name: c.endCity, country: c.endCity, code: '' };
     });
     kilos.forEach(k => {
       k.startCity2 = cityMap.get(k.startCity) || null;
@@ -1013,8 +1032,13 @@ exports.getAnnonce = async (req, res) => {
       Announcement.countDocuments({userId: annonce.userId, active: true}),
     ]);
 
-    annonce.startCity2 = startCity2;
-    annonce.endCity2 = endCity2;
+    if (annonce.status === 'container') {
+      annonce.startCity2 = startCity2 || { name: annonce.startCity, country: annonce.startCity, code: '' };
+      annonce.endCity2 = endCity2 || { name: annonce.endCity, country: annonce.endCity, code: '' };
+    } else {
+      annonce.startCity2 = startCity2;
+      annonce.endCity2 = endCity2;
+    }
 
     res.status(200).json({ status: 0, annonce, sum, user });
   } catch (e) {
