@@ -1247,27 +1247,30 @@ exports.toggleActiveStatus = async (req, res) => {
       
       
   if(search){
-    
+
       const userr = await User.findOne({_id: search.userId});
       const badgee = await Notification.countDocuments({read: false, receiverId: userr._id})
-      
+
       const newNotif = Notification({
-        title: "Bonne nouvelle", 
-        body: "Un container correspondant à une de vos recherche a été trouvé", 
-        date: new Date(), 
-        read: false, 
+        title: "Bonne nouvelle",
+        body: "Un container correspondant à une de vos recherche a été trouvé",
+        date: new Date(),
+        read: false,
         view: false,
-        receiverId: userr._id, 
-        authorId: "grouping", 
+        receiverId: userr._id,
+        authorId: "grouping",
         annonceId: announcement._id
       })
-      
+
       await newNotif.save();
 
-      await sendNotificationToUser(userr._id, "Bonne nouvelle", "Un container correspondant à une de vos recherche a été trouvé", badgee, {annonceId: String(announcement._id), "status": `1`, "badge": `${badgee}`});
+      try {
+        await sendNotificationToUser(userr._id, "Bonne nouvelle", "Un container correspondant à une de vos recherche a été trouvé", badgee, {annonceId: String(announcement._id), "status": `1`, "badge": `${badgee}`});
+      } catch (pushErr) {
+        console.error("Erreur push notification (recherche):", pushErr.message);
+      }
 
   }
-      
       const newNotification = Notification({
 
           title: "Félicitations",
@@ -1283,9 +1286,13 @@ exports.toggleActiveStatus = async (req, res) => {
 
       const badge = await Notification.countDocuments({receiverId: user._id, read: false});
 
-      await sendNotificationToUser(user._id, "Félicitations",
-        "L'annonce sur votre conteneur est désormais active et visible pour tous. Retrouvez-la dans vos annonces",
-        badge, {"status": `0`, "badge": `${badge}`});
+      try {
+        await sendNotificationToUser(user._id, "Félicitations",
+          "L'annonce sur votre conteneur est désormais active et visible pour tous. Retrouvez-la dans vos annonces",
+          badge, {"status": `0`, "badge": `${badge}`});
+      } catch (pushErr) {
+        console.error("Erreur push notification (activation):", pushErr.message);
+      }
 
     }
 
