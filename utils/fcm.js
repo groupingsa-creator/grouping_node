@@ -27,7 +27,7 @@ async function sendPushNotification(token, title, body, badge, data = {}) {
         notification: {
           channel_id: "default",
           sound: "default",
-          priority: "high",
+          notification_priority: "PRIORITY_HIGH",
           default_vibrate_timings: true,
           default_sound: true,
         },
@@ -85,7 +85,7 @@ async function sendNotificationToUser(userId, title, body, badge, data = {}) {
 
     const result = await sendPushNotification(fcmToken, title, body, badge, data);
 
-    if (!result.success && ["UNREGISTERED", "NOT_FOUND", "INVALID_ARGUMENT"].includes(result.errorCode)) {
+    if (!result.success && ["UNREGISTERED", "NOT_FOUND"].includes(result.errorCode)) {
       console.log(`🗑️ Token invalide détecté pour user ${userId}, suppression...`);
       invalidTokens.push(fcmToken);
     }
