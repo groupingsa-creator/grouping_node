@@ -5,74 +5,11 @@ const User = require("../models/User");
 const mongoose = require("mongoose");
 const { ObjectId } = require("mongodb");
 const View = require("../models/View");
-const FIREBASE_API_URL = "https://fcm.googleapis.com/fcm/send";
-const { GoogleAuth } = require("google-auth-library");
 const fs = require("fs");
 const http = require("https");
-const axios = require("axios");
 const Notification = require("../models/Notification")
-const Search = require("../models/Search"); 
-
-
-const MY_PROJECT_ID = process.env.FIREBASEPROJECTID
-const FCM_ENDPOINT = `https://fcm.googleapis.com/v1/projects/${MY_PROJECT_ID}/messages:send`;
-
-const SERVICE_ACCOUNT_KEY_FILE = "./my-service-account.json";
-
-async function getAccessToken() {
-  const auth = new GoogleAuth({
-    keyFile: SERVICE_ACCOUNT_KEY_FILE,
-    scopes: ["https://www.googleapis.com/auth/firebase.messaging"],
-  });
-
-  const accessToken = await auth.getAccessToken();
-  return accessToken;
-}
-
-async function sendPushNotification(token, title, body, badge, data = {}) {
-  try {
-    // Obtenir le jeton OAuth 2.0
-    const accessToken = await getAccessToken();
-
-    // Construire la charge utile du message
-    const messagePayload = {
-      validate_only: false,
-      message: {
-        token,
-        notification: {
-          title: title,
-          body: body,
-        },
-        apns: {
-          payload: {
-            aps: {
-              alert: {
-                title: title,
-                body: body,
-              },
-              badge,
-            },
-          },
-        },
-        data: data, // Charge utile personnalisée
-      },
-    };
-
-    // Envoyer la requête POST
-    const response = await axios.post(FCM_ENDPOINT, messagePayload, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
-    });
-
-  } catch (error) {
-    console.error(
-      "Erreur lors de l’envoi de la notification :",
-      error.response?.data.error.details[0] || error.message
-    );
-  }
-}
+const Search = require("../models/Search");
+const { sendPushNotification } = require("../utils/fcm");
 
 exports.modifierUneAnnonceKilo = async (req, res) => {
   

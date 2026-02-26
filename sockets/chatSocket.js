@@ -114,7 +114,7 @@ function chatSocket(io) {
         const unreadMessages = await Message.countDocuments({ user2Id: receiverIdStr, read: false });
         
         console.log("PUSH step 4: count unread notifications");
-        const unreadNotifications = await Notification.countDocuments({ receiverId: receiverIdStr, view: false });
+        const unreadNotifications = await Notification.countDocuments({ receiverId: receiverIdStr, read: false });
         
         const finalBadge = unreadMessages + unreadNotifications;
         console.log("PUSH step 5: finalBadge =", finalBadge);

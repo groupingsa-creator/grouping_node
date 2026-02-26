@@ -21,12 +21,28 @@ async function sendPushNotification(token, title, body, badge, data = {}) {
     message: {
       token,
       notification: { title, body },
+      android: {
+        priority: "high",
+        notification: {
+          channel_id: "default",
+          sound: "default",
+          priority: "high",
+          default_vibrate_timings: true,
+          default_sound: true,
+        },
+      },
       apns: {
         headers: {
           "apns-priority": "10",
-          "apns-push-type": "alert"
+          "apns-push-type": "alert",
         },
-        payload: { aps: { alert: { title, body }, badge, sound: "default" } }
+        payload: {
+          aps: {
+            alert: { title, body },
+            badge,
+            sound: "default",
+          },
+        },
       },
       data,
     },
