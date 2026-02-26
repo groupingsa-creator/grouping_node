@@ -25,7 +25,19 @@ mongoose.connect(`mongodb+srv://fideleNdzime:${process.env.MONGOPASS}@cluster0.r
 
   { useNewUrlParser: true,
     useUnifiedTopology: true, autoIndex: true })
-  .then(() => console.log('Connexion à MongoDB réussie !'))
+  .then(async () => {
+    console.log('Connexion à MongoDB réussie !');
+
+    // Migration one-shot : initialiser fcmToken à [] pour les anciens users
+    const User = require("./models/User");
+    const result = await User.updateMany(
+      { $or: [{ fcmToken: { $exists: false } }, { fcmToken: null }] },
+      { $set: { fcmToken: [] } }
+    );
+    if (result.modifiedCount > 0) {
+      console.log(`🔄 Migration fcmToken : ${result.modifiedCount} utilisateur(s) mis à jour.`);
+    }
+  })
   .catch((err) => console.log('Connexion à MongoDB échouée !', err));
 
 
