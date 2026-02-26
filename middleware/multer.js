@@ -102,4 +102,56 @@ const handleMediaUpload = (req, res, next) => {
   });
 };
 
-module.exports = { handleUpload, handleMediaUpload };
+// Middleware pour upload PDF sur Cloudinary (annonces)
+const pdfStorage = new CloudinaryStorage({
+  cloudinary,
+  params: async (req, file) => {
+    if (file.mimetype !== "application/pdf") {
+      throw new Error("Seuls les fichiers PDF sont autorisés");
+    }
+    return {
+      folder: "grouping",
+      resource_type: "raw",
+      format: "pdf",
+    };
+  },
+});
+
+const pdfMulterInstance = multer({ storage: pdfStorage });
+
+const handlePdfUpload = (req, res, next) => {
+  pdfMulterInstance.single("pdf_document")(req, res, function (err) {
+    if (err) {
+      console.error("Erreur upload PDF :", err);
+      return res.status(400).json({
+        error: "Échec de l'upload du PDF.",
+        details: err.message,
+      });
+    }
+    next();
+  });
+};
+
+// Middleware pour upload multiple d'images sur Cloudinary (annonces)
+const multiImageInstance = multer({
+  storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024,   // 5 Mo par image
+    files: 15                    // Max 15 fichiers
+  }
+});
+
+const handleMultipleImages = (req, res, next) => {
+  multiImageInstance.array("images", 15)(req, res, function (err) {
+    if (err) {
+      console.error("Erreur upload images :", err);
+      return res.status(400).json({
+        error: "Échec de l'upload des images.",
+        details: err.message,
+      });
+    }
+    next();
+  });
+};
+
+module.exports = { handleUpload, handleMediaUpload, handleMultipleImages, handlePdfUpload };

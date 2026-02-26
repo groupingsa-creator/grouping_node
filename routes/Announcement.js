@@ -4,13 +4,12 @@ const router = express.Router();
 
 const announcementCtrl = require("../controllers/Announcement"); 
 
-const auth = require("../middleware/auth"); 
-const multer = require("../middleware/multer-configs"); 
-const multer2 = require("../middleware/multer-configs2"); 
+const auth = require("../middleware/auth");
+const { handleMultipleImages, handlePdfUpload } = require("../middleware/multer");
 
-router.post("/addannouncement", auth, multer, multer2, announcementCtrl.addAnnouncement); 
-router.post("/addannouncementwithpdf", auth, multer, announcementCtrl.addAnnouncementWithPdf);
-router.post("/addannouncementwithImages", auth, multer2, announcementCtrl.addAnnouncementWithImages)
+router.post("/addannouncement", auth, handlePdfUpload, handleMultipleImages, announcementCtrl.addAnnouncement);
+router.post("/addannouncementwithpdf", auth, handlePdfUpload, announcementCtrl.addAnnouncementWithPdf);
+router.post("/addannouncementwithImages", auth, handleMultipleImages, announcementCtrl.addAnnouncementWithImages)
 router.get("/getannouncementbyid", auth, announcementCtrl.getAnnouncementsById); 
 router.post("/announces", announcementCtrl.getAnnonces);
 router.post("/moreannounces", auth, announcementCtrl.moreAnnouncements)
@@ -24,13 +23,14 @@ router.get("/getconversionrate", auth, announcementCtrl.getConversionRate)
 router.post("/updateactivecontainer", auth, announcementCtrl.toggleActiveStatus);
 router.post("/updatetransitaire", auth, announcementCtrl.updateTransitaire);
 router.post("/avoirlesannonces", announcementCtrl.avoirLesAnnonces);
-router.post("/ajouterunconteneur", auth, multer2,  announcementCtrl.addAnnouncementWithImages);
-router.post("/modifierannonceimg", auth, multer2, announcementCtrl.modifierAnnonceImage)
-router.post("/modifierannoncepdf", auth, multer, announcementCtrl.modifierAnnonceImage)
+router.post("/ajouterunconteneur", auth, handleMultipleImages, announcementCtrl.addAnnouncementWithImages);
+router.post("/modifierannonceimg", auth, handleMultipleImages, announcementCtrl.modifierAnnonceImage)
+router.post("/modifierannoncepdf", auth, handlePdfUpload, announcementCtrl.modifierAnnonceImage)
 router.post("/modifierkilo", auth, announcementCtrl.modifierUneAnnonceKilo);
 router.post("/cleanbrokenurls", auth, announcementCtrl.cleanBrokenDraftUrls);
-router.post("/updateactivecontainerwithfile", auth, multer, announcementCtrl.toggleActiveStatusWithFile);
-router.post("/updateactivecontainerwithimage", auth, multer2, announcementCtrl.toggleActiveStatusWithImage);
+router.post("/updateactivecontainerwithfile", auth, handlePdfUpload, announcementCtrl.toggleActiveStatusWithFile);
+router.post("/updateactivecontainerwithimage", auth, handleMultipleImages, announcementCtrl.toggleActiveStatusWithImage);
+router.post("/departsimminents", announcementCtrl.getDepartsImminents);
 
 
 module.exports = router;

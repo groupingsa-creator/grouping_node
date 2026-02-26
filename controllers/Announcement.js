@@ -93,8 +93,8 @@ exports.avoirLesAnnonces = async (req, res) => {
     const cityMap = new Map(cities.map((city) => [city.name, city]));
 
     annonces.forEach((annonce) => {
-      annonce.startCity2 = cityMap.get(annonce.startCity) || null;
-      annonce.endCity2 = cityMap.get(annonce.endCity) || null;
+      annonce.startCity2 = cityMap.get(annonce.startCity) || { name: annonce.startCity, country: '', code: '' };
+      annonce.endCity2 = cityMap.get(annonce.endCity) || { name: annonce.endCity, country: '', code: '' };
     });
 
     // 🔹 Réponse
@@ -276,13 +276,13 @@ exports.getAnnoncess = async (req, res) => {
 
     // Ajouter les informations de ville aux conteneurs et kilos
     containers.forEach((container) => {
-      container.startCity2 = cityMap.get(container.startCity);
-      container.endCity2 = cityMap.get(container.endCity);
+      container.startCity2 = cityMap.get(container.startCity) || { name: container.startCity, country: '', code: '' };
+      container.endCity2 = cityMap.get(container.endCity) || { name: container.endCity, country: '', code: '' };
     });
 
     kilos.forEach((kilo) => {
-      kilo.startCity2 = cityMap.get(kilo.startCity);
-      kilo.endCity2 = cityMap.get(kilo.endCity);
+      kilo.startCity2 = cityMap.get(kilo.startCity) || { name: kilo.startCity, country: '', code: '' };
+      kilo.endCity2 = cityMap.get(kilo.endCity) || { name: kilo.endCity, country: '', code: '' };
     });
 
     // Répondre avec les données traitées
@@ -600,12 +600,10 @@ exports.toggleActiveStatus = async (req, res) => {
 };
 
 exports.addAnnouncementWithPdf = async (req, res) => {
-  
-  
+
+
   try{
-  const draft = [
-    `${req.protocol}s://${req.get("host")}/pdf_documents/${req.file.filename}`,
-  ];
+  const draft = [req.file.path];
 
   const dateOfDeparture = new Date(req.body.dateOfDeparture);
     
@@ -667,16 +665,16 @@ exports.modifierAnnonceImage = async (req, res) => {
               
         
             if(req.file){
-              
-              
-                draft.push(`${req.protocol}s://${req.get("host")}/pdf_documents/${req.file.filename}`);
-               
-              
+
+
+                draft.push(req.file.path);
+
+
             }else{
-              
-              
+
+
               for (let file of req.files) {
-                draft.push(`${req.protocol}s://${req.get("host")}/images/${file.filename}`);
+                draft.push(file.path);
               }
               
               
@@ -717,7 +715,7 @@ exports.addAnnouncementWithImages = (req, res) => {
   let draft = [];
 
   for (let file of req.files) {
-    draft.push(`${req.protocol}s://${req.get("host")}/images/${file.filename}`);
+    draft.push(file.path);
   }
 
   const dateOfDeparture = new Date(req.body.dateOfDeparture);
@@ -844,8 +842,8 @@ exports.getAnnouncementsById = async (req, res) => {
     const cityMap = new Map(cities.map(c => [c.name, c]));
 
     containers.forEach(c => {
-      c.startCity2 = cityMap.get(c.startCity) || { name: c.startCity, country: c.startCity, code: '' };
-      c.endCity2 = cityMap.get(c.endCity) || { name: c.endCity, country: c.endCity, code: '' };
+      c.startCity2 = cityMap.get(c.startCity) || { name: c.startCity, country: '', code: '' };
+      c.endCity2 = cityMap.get(c.endCity) || { name: c.endCity, country: '', code: '' };
     });
     kilos.forEach(k => { k.startCity2 = cityMap.get(k.startCity) || null; k.endCity2 = cityMap.get(k.endCity) || null; });
 
@@ -924,12 +922,12 @@ exports.getAnnonces = async (req, res) => {
     const cityMap = new Map(cities.map(c => [c.name, c]));
 
     containers.forEach(c => {
-      c.startCity2 = cityMap.get(c.startCity) || { name: c.startCity, country: c.startCity, code: '' };
-      c.endCity2 = cityMap.get(c.endCity) || { name: c.endCity, country: c.endCity, code: '' };
+      c.startCity2 = cityMap.get(c.startCity) || { name: c.startCity, country: '', code: '' };
+      c.endCity2 = cityMap.get(c.endCity) || { name: c.endCity, country: '', code: '' };
     });
     kilos.forEach(k => {
-      k.startCity2 = cityMap.get(k.startCity) || null;
-      k.endCity2 = cityMap.get(k.endCity) || null;
+      k.startCity2 = cityMap.get(k.startCity) || { name: k.startCity, country: '', code: '' };
+      k.endCity2 = cityMap.get(k.endCity) || { name: k.endCity, country: '', code: '' };
     });
 
     // 3️⃣ Récupérer tous les utilisateurs des annonces
@@ -944,6 +942,45 @@ exports.getAnnonces = async (req, res) => {
     kilos.forEach(k => { k.user = userMap.get(k.userId) || null; });
 
     res.status(200).json({ status: 0, kilos, containers });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+
+exports.getDepartsImminents = async (req, res) => {
+  try {
+    const currentDate = new Date();
+
+    const annonces = await Announcement.find({
+      active: true,
+      dateOfDeparture: { $gte: currentDate }
+    })
+      .sort({ dateOfDeparture: 1 })
+      .limit(10)
+      .lean();
+
+    const cityNames = [
+      ...new Set([
+        ...annonces.map(a => a.startCity),
+        ...annonces.map(a => a.endCity),
+      ]),
+    ];
+    const cities = await City.find({ name: { $in: cityNames } }).lean();
+    const cityMap = new Map(cities.map(c => [c.name, c]));
+
+    const allUserIds = [...new Set(annonces.map(a => a.userId))];
+    const users = await User.find({ _id: { $in: allUserIds } }).select('-password').lean();
+    const userMap = new Map(users.map(u => [u._id.toString(), u]));
+
+    annonces.forEach(a => {
+      a.startCity2 = cityMap.get(a.startCity) || { name: a.startCity, country: a.startCity, code: '' };
+      a.endCity2 = cityMap.get(a.endCity) || { name: a.endCity, country: a.endCity, code: '' };
+      a.user = userMap.get(a.userId) || null;
+    });
+
+    res.status(200).json({ status: 0, departs: annonces });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });
@@ -1404,7 +1441,7 @@ exports.toggleActiveStatusWithFile = async (req, res) => {
 
       // Mettre à jour le draft avec le nouveau fichier uploadé
       if (req.file) {
-        update.draft = [`${req.protocol}s://${req.get("host")}/pdf_documents/${req.file.filename}`];
+        update.draft = [req.file.path];
       }
 
       const user = await User.findOne({ _id: announcement.userId });
@@ -1520,7 +1557,7 @@ exports.toggleActiveStatusWithImage = async (req, res) => {
 
       // Mettre à jour le draft avec la nouvelle image uploadée
       if (req.files && req.files.length > 0) {
-        update.draft = [`${req.protocol}s://${req.get("host")}/images/${req.files[0].filename}`];
+        update.draft = [req.files[0].path];
       }
 
       const user = await User.findOne({ _id: announcement.userId });
