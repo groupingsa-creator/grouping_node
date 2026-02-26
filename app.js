@@ -38,10 +38,10 @@ mongoose.connect(`mongodb+srv://fideleNdzime:${process.env.MONGOPASS}@cluster0.r
       console.log(`Migration fcmToken : ${result.modifiedCount} utilisateur(s) mis a jour.`);
     }
 
-    // Nettoyage des URLs PDF cassées (double extension .pdf<timestamp>.pdf)
+    // Nettoyage des URLs cassées (double extension .pdf/.jpg/.png<timestamp>)
     const Announcement = require("./models/Announcement");
     const cleanResult = await Announcement.updateMany(
-      { "draft.0": { $regex: /\.pdf\d+\.pdf$/ } },
+      { "draft.0": { $regex: /\.(pdf|jpg|jpeg|png)_?\d+\.(pdf|jpg|jpeg|png)$/ } },
       { $set: { draft: [] } }
     );
     if (cleanResult.modifiedCount > 0) {

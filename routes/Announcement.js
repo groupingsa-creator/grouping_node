@@ -30,6 +30,7 @@ router.post("/modifierannoncepdf", auth, multer, announcementCtrl.modifierAnnonc
 router.post("/modifierkilo", auth, announcementCtrl.modifierUneAnnonceKilo);
 router.post("/cleanbrokenurls", auth, announcementCtrl.cleanBrokenDraftUrls);
 router.post("/updateactivecontainerwithfile", auth, multer, announcementCtrl.toggleActiveStatusWithFile);
+router.post("/updateactivecontainerwithimage", auth, multer2, announcementCtrl.toggleActiveStatusWithImage);
 
 
 module.exports = router;

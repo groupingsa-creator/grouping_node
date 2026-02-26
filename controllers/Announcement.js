@@ -1360,7 +1360,7 @@ exports.updateTransitaire = async (req, res) => {
 exports.cleanBrokenDraftUrls = async (req, res) => {
   try {
     const result = await Announcement.updateMany(
-      { "draft.0": { $regex: /\.pdf\d+\.pdf$/ } },
+      { "draft.0": { $regex: /\.(pdf|jpg|jpeg|png)_?\d+\.(pdf|jpg|jpeg|png)$/ } },
       { $set: { draft: [] } }
     );
     res.status(200).json({ status: 0, modified: result.modifiedCount });
@@ -1478,6 +1478,122 @@ exports.toggleActiveStatusWithFile = async (req, res) => {
     });
   } catch (error) {
     console.error("Erreur lors de la mise à jour du statut 'active' avec fichier :", error);
+    res.status(500).json({
+      status: 1,
+      message: "Erreur lors de la mise à jour du statut 'active'.",
+      error,
+    });
+  }
+};
+
+exports.toggleActiveStatusWithImage = async (req, res) => {
+  try {
+    const { id, transitaire } = req.body;
+
+    if (!id) {
+      return res.status(400).json({
+        status: 1,
+        message: "L'identifiant de l'annonce est requis.",
+      });
+    }
+
+    const announcement = await Announcement.findById(id);
+
+    if (!announcement) {
+      return res.status(404).json({
+        status: 1,
+        message: "Annonce non trouvée.",
+      });
+    }
+
+    const update = {};
+    if (announcement.active) {
+      update.active = false;
+      update.locked = true;
+    } else {
+      update.active = true;
+      update.$unset = { locked: "" };
+
+      if (transitaire) {
+        update.transitaire = transitaire;
+      }
+
+      // Mettre à jour le draft avec la nouvelle image uploadée
+      if (req.files && req.files.length > 0) {
+        update.draft = [`${req.protocol}s://${req.get("host")}/images/${req.files[0].filename}`];
+      }
+
+      const user = await User.findOne({ _id: announcement.userId });
+
+      const search = await Search.findOne({
+        startCity: announcement.startCity,
+        endCity: announcement.endCity,
+        status: announcement.status,
+        year: new Date(announcement.dateOfDeparture).getFullYear().toString(),
+        $or: [
+          { month: new Date(announcement.dateOfDeparture).getMonth().toString() },
+          { month: (new Date(announcement.dateOfDeparture).getMonth() + 1).toString() },
+        ],
+      });
+
+      if (search) {
+        const userr = await User.findOne({ _id: search.userId });
+        const badgee = await Notification.countDocuments({ read: false, receiverId: userr._id });
+
+        const newNotif = Notification({
+          title: "Bonne nouvelle",
+          body: "Un container correspondant à une de vos recherche a été trouvé",
+          date: new Date(),
+          read: false,
+          view: false,
+          receiverId: userr._id,
+          authorId: "grouping",
+          annonceId: announcement._id,
+        });
+
+        await newNotif.save();
+
+        try {
+          await sendNotificationToUser(userr._id, "Bonne nouvelle", "Un container correspondant à une de vos recherche a été trouvé", badgee, { annonceId: String(announcement._id), status: "1", badge: `${badgee}` });
+        } catch (pushErr) {
+          console.error("Erreur push notification (recherche):", pushErr.message);
+        }
+      }
+
+      const newNotification = Notification({
+        title: "Félicitations",
+        body: "L'annonce sur votre conteneur est désormais active et visible pour tous. Retrouvez là dans vos annonces",
+        date: new Date(),
+        read: false,
+        view: false,
+        authorId: "grouping",
+        receiverId: user._id,
+      });
+
+      await newNotification.save();
+
+      const badge = await Notification.countDocuments({ receiverId: user._id, read: false });
+
+      try {
+        await sendNotificationToUser(user._id, "Félicitations", "L'annonce sur votre conteneur est désormais active et visible pour tous. Retrouvez-la dans vos annonces", badge, { status: "0", badge: `${badge}` });
+      } catch (pushErr) {
+        console.error("Erreur push notification (activation):", pushErr.message);
+      }
+    }
+
+    const updatedAnnouncement = await Announcement.findByIdAndUpdate(
+      id,
+      update,
+      { new: true }
+    );
+
+    res.status(200).json({
+      status: 0,
+      message: "Statut 'active' mis à jour avec succès.",
+      announcement: updatedAnnouncement,
+    });
+  } catch (error) {
+    console.error("Erreur lors de la mise à jour du statut 'active' avec image :", error);
     res.status(500).json({
       status: 1,
       message: "Erreur lors de la mise à jour du statut 'active'.",

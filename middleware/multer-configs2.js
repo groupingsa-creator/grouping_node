@@ -13,9 +13,9 @@ try {
       callback(null, "images");
     },
     filename: (req, file, callback) => {
-      const name = file.originalname.split(" ").join("_");
+      const nameWithoutExt = file.originalname.replace(/\.[^/.]+$/, "").split(" ").join("_");
       const extension = MIME_TYPES[file.mimetype];
-      const filename = name + "_" + Date.now() + "." + extension;
+      const filename = nameWithoutExt + "_" + Date.now() + "." + extension;
       callback(null, filename);
     }
   });
