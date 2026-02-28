@@ -67,7 +67,7 @@ exports.avoirLesAnnonces = async (req, res) => {
     const filter = {
       active: true,
       status: status === "c" ? "container" : "kilos",
-      dateOfDeparture: { $gte: new Date() },
+      dateOfDeparture: { $gte: new Date(new Date().setHours(0, 0, 0, 0)) },
     };
 
     // 🔹 Agrégation pour annonces + utilisateurs
@@ -259,7 +259,7 @@ exports.addAnnouncement = (req, res) => {
 
 exports.getAnnoncess = async (req, res) => {
   try {
-    const currentDate = new Date();
+    const currentDate = new Date(new Date().setHours(0, 0, 0, 0));
     const limit = req.body.three ? 3 : 60;
 
     // Récupérer les annonces de conteneurs et de kilos
@@ -363,7 +363,7 @@ exports.annoncesRecherche = async (req, res) => {
 
   let startDate;
   if (year === new Date().getFullYear() && month - 1 === new Date().getMonth()) {
-    startDate = new Date();
+    startDate = new Date(new Date().setHours(0, 0, 0, 0));
   } else {
     startDate = new Date(year, month - 1, 1);
   }
@@ -445,12 +445,12 @@ exports.annoncesRecherche = async (req, res) => {
 
 exports.getValidAnnouncements = async (req, res) => {
   try {
-    // Récupérer la date actuelle
-    const currentDate = new Date();
+    // Récupérer la date actuelle (début de journée pour garder les annonces du jour)
+    const currentDate = new Date(new Date().setHours(0, 0, 0, 0));
 
     // Trouver toutes les annonces avec une date de départ valide
     const validAnnouncements = await Announcement.find({
-      dateOfDeparture: { $gt: currentDate }, // Filtrer les annonces avec une date de départ future
+      dateOfDeparture: { $gte: currentDate }, // Filtrer les annonces avec une date de départ future ou aujourd'hui
     });
 
     res.status(200).json({
@@ -919,7 +919,7 @@ exports.moreAnnouncements = async (req, res) => {
 
 exports.getAnnonces = async (req, res) => {
   try {
-    const currentDate = new Date();
+    const currentDate = new Date(new Date().setHours(0, 0, 0, 0));
     const limit = req.body.three ? 3 : 60;
 
     // 1️⃣ Récupérer les annonces de conteneurs et de kilos
@@ -970,7 +970,7 @@ exports.getAnnonces = async (req, res) => {
 
 exports.getDepartsImminents = async (req, res) => {
   try {
-    const currentDate = new Date();
+    const currentDate = new Date(new Date().setHours(0, 0, 0, 0));
 
     const annonces = await Announcement.find({
       active: true,
@@ -1068,7 +1068,7 @@ exports.annoncesRecherche = async (req, res) => {
     year === new Date().getFullYear() &&
     month - 1 === new Date().getMonth()
   ) {
-    startDate = new Date();
+    startDate = new Date(new Date().setHours(0, 0, 0, 0));
   } else {
     startDate = new Date(year, month - 1, 1);
   }
@@ -1138,12 +1138,12 @@ exports.annoncesRecherche = async (req, res) => {
 
 exports.getValidAnnouncements = async (req, res) => {
   try {
-    // Récupérer la date actuelle
-    const currentDate = new Date();
+    // Récupérer la date actuelle (début de journée pour garder les annonces du jour)
+    const currentDate = new Date(new Date().setHours(0, 0, 0, 0));
 
     // Trouver toutes les annonces avec une date de départ valide
     const validAnnouncements = await Announcement.find({
-      dateOfDeparture: { $gt: currentDate }, // Filtrer les annonces avec une date de départ future
+      dateOfDeparture: { $gte: currentDate }, // Filtrer les annonces avec une date de départ future ou aujourd'hui
     });
 
     res.status(200).json({
