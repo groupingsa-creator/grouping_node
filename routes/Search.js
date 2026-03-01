@@ -7,6 +7,7 @@ const searhCtrl = require("../controllers/Search");
 
 const auth = require("../middleware/auth");
 
-router.get("/getsearch",auth, searhCtrl.getSearch); 
+router.post("/addsearch", auth, searhCtrl.addSearch);
+router.get("/getsearch",auth, searhCtrl.getSearch);
 
 module.exports = router;

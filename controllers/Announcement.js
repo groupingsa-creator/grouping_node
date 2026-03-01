@@ -1295,13 +1295,22 @@ exports.toggleActiveStatus = async (req, res) => {
         update.transitaire = transitaire;
       }
       
-      const user = await User.findOne({_id: announcement.userId}); 
-      
-        const search = await Search.findOne({startCity: announcement.startCity, endCity: announcement.endCity, status: announcement.status,
-          year: new Date(announcement.dateOfDeparture).getFullYear().toString(), $or: [{month: new Date(announcement.dateOfDeparture).getMonth().toString()}, {month: (new Date(announcement.dateOfDeparture).getMonth() + 1).toString()}]});
+      const user = await User.findOne({_id: announcement.userId});
 
-      
-      
+        // Recherche par ville ET par pays pour supporter les recherches web (par pays) et mobile (par ville)
+        const startCityDoc = await City.findOne({ name: announcement.startCity });
+        const endCityDoc = await City.findOne({ name: announcement.endCity });
+
+        const search = await Search.findOne({
+          $and: [
+            { $or: [{ startCity: announcement.startCity }, { startCity: startCityDoc?.country }] },
+            { $or: [{ endCity: announcement.endCity }, { endCity: endCityDoc?.country }] },
+            { $or: [{ month: new Date(announcement.dateOfDeparture).getMonth().toString() }, { month: (new Date(announcement.dateOfDeparture).getMonth() + 1).toString() }] }
+          ],
+          status: announcement.status,
+          year: new Date(announcement.dateOfDeparture).getFullYear().toString()
+        });
+
   if(search){
 
       const userr = await User.findOne({_id: search.userId});
@@ -1467,15 +1476,18 @@ exports.toggleActiveStatusWithFile = async (req, res) => {
 
       const user = await User.findOne({ _id: announcement.userId });
 
+      // Recherche par ville ET par pays pour supporter les recherches web (par pays) et mobile (par ville)
+      const startCityDoc2 = await City.findOne({ name: announcement.startCity });
+      const endCityDoc2 = await City.findOne({ name: announcement.endCity });
+
       const search = await Search.findOne({
-        startCity: announcement.startCity,
-        endCity: announcement.endCity,
-        status: announcement.status,
-        year: new Date(announcement.dateOfDeparture).getFullYear().toString(),
-        $or: [
-          { month: new Date(announcement.dateOfDeparture).getMonth().toString() },
-          { month: (new Date(announcement.dateOfDeparture).getMonth() + 1).toString() },
+        $and: [
+          { $or: [{ startCity: announcement.startCity }, { startCity: startCityDoc2?.country }] },
+          { $or: [{ endCity: announcement.endCity }, { endCity: endCityDoc2?.country }] },
+          { $or: [{ month: new Date(announcement.dateOfDeparture).getMonth().toString() }, { month: (new Date(announcement.dateOfDeparture).getMonth() + 1).toString() }] }
         ],
+        status: announcement.status,
+        year: new Date(announcement.dateOfDeparture).getFullYear().toString()
       });
 
       if (search) {
@@ -1585,15 +1597,18 @@ exports.toggleActiveStatusWithImage = async (req, res) => {
 
       const user = await User.findOne({ _id: announcement.userId });
 
+      // Recherche par ville ET par pays pour supporter les recherches web (par pays) et mobile (par ville)
+      const startCityDoc3 = await City.findOne({ name: announcement.startCity });
+      const endCityDoc3 = await City.findOne({ name: announcement.endCity });
+
       const search = await Search.findOne({
-        startCity: announcement.startCity,
-        endCity: announcement.endCity,
-        status: announcement.status,
-        year: new Date(announcement.dateOfDeparture).getFullYear().toString(),
-        $or: [
-          { month: new Date(announcement.dateOfDeparture).getMonth().toString() },
-          { month: (new Date(announcement.dateOfDeparture).getMonth() + 1).toString() },
+        $and: [
+          { $or: [{ startCity: announcement.startCity }, { startCity: startCityDoc3?.country }] },
+          { $or: [{ endCity: announcement.endCity }, { endCity: endCityDoc3?.country }] },
+          { $or: [{ month: new Date(announcement.dateOfDeparture).getMonth().toString() }, { month: (new Date(announcement.dateOfDeparture).getMonth() + 1).toString() }] }
         ],
+        status: announcement.status,
+        year: new Date(announcement.dateOfDeparture).getFullYear().toString()
       });
 
       if (search) {
