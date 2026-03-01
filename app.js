@@ -60,6 +60,7 @@ const notificationRouter = require("./routes/Notification");
 const searchRouter = require("./routes/Search");
 const tokenRouter = require("./routes/DeviceToken");
 const trackingRouter = require("./routes/Tracking");
+const likeRouter = require("./routes/Like");
 
 
 app.use("/api/country", countryRouter)
@@ -73,5 +74,6 @@ app.use("/api/notification", notificationRouter);
 app.use("/api/search", searchRouter);
 app.use("/api/token", tokenRouter);
 app.use("/api/tracking", trackingRouter);
+app.use("/api/like", likeRouter);
 
 module.exports = app;

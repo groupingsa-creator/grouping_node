@@ -236,6 +236,41 @@ exports.addMessageWithMedia = async (req, res) => {
   }
 };
 
+//pour la version web (conversations de l'utilisateur connecté)
+exports.getUserConversationCount = async (req, res) => {
+  try {
+    const userId = req.auth.userId;
+    const conversationCount = await Message.aggregate([
+      {
+        $match: {
+          $or: [{ user1Id: userId }, { user2Id: userId }],
+        },
+      },
+      {
+        $group: {
+          _id: {
+            user1: { $cond: [{ $lt: ["$user1Id", "$user2Id"] }, "$user1Id", "$user2Id"] },
+            user2: { $cond: [{ $lt: ["$user1Id", "$user2Id"] }, "$user2Id", "$user1Id"] },
+          },
+        },
+      },
+      {
+        $count: "totalConversations",
+      },
+    ]);
+
+    const totalConversations = conversationCount[0]?.totalConversations || 0;
+
+    res.status(200).json({
+      status: 0,
+      count: totalConversations,
+    });
+  } catch (error) {
+    console.error("Erreur lors du calcul des conversations utilisateur :", error);
+    res.status(500).json({ status: 1, message: "Erreur serveur" });
+  }
+};
+
 //pour la version admin
 exports.getConversationCount = async (req, res) => {
   try {

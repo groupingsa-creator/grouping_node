@@ -10,6 +10,7 @@ router.post("/getmessages", auth, messageCtrl.getMessages);
 router.post("/getMessagesById", auth, messageCtrl.getMessagesById);
 router.post("/addmessage", auth, messageCtrl.addMessage);
 router.get("/getconversationcount", auth, messageCtrl.getConversationCount);
+router.get("/getuserconversationcount", auth, messageCtrl.getUserConversationCount);
 router.post("/addmessagewithimage", auth, handleUpload, messageCtrl.addMessageWithImage);
 router.post("/addmessagewithmedia", auth, handleMediaUpload, messageCtrl.addMessageWithMedia);
 
