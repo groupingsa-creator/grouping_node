@@ -101,6 +101,19 @@ exports.subscribe = async (req, res) => {
     });
     await subscription.save();
 
+    if (!HAPAG_BASE || !HAPAG_CLIENT_ID || !HAPAG_CLIENT_SECRET) {
+      subscription.status = "error";
+      subscription.errorMessage = "Hapag-Lloyd API not configured";
+      subscription.updatedAt = new Date();
+      await subscription.save();
+      return res.status(200).json({
+        status: 2,
+        message: "Tracking API not configured",
+        subscription,
+        events: [],
+      });
+    }
+
     try {
       const response = await axios.post(
         `${HAPAG_BASE}/v1/event-subscriptions`,
