@@ -5,11 +5,10 @@ const Announcement = require("../models/Announcement");
 
 exports.viewNotifications = async (req, res) => {
   try {
-    await Promise.all([
-      Notification.updateMany({receiverId: req.auth.userId}, {$set: {view: true, read: true}}),
-      Message.updateMany({user2Id: req.auth.userId, read: false}, {$set: {read: true}}),
-    ]);
-
+    await Notification.updateMany(
+      {receiverId: req.auth.userId},
+      {$set: {view: true, read: true}}
+    );
     res.status(200).json({status: 0});
   } catch(err) {
     console.log(err);
