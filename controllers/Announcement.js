@@ -815,7 +815,7 @@ exports.addAnnouncement = (req, res) => {
       const newNotif = Notification({
         
         title: "Bonne nouvelle", 
-        body: "Un container correspondant à une de vos recherche a été trouvé", 
+        body: "Un conteneur correspondant à une de vos recherches a été trouvé", 
         date: new Date(), 
         read: false, 
         view: false,
@@ -828,8 +828,7 @@ exports.addAnnouncement = (req, res) => {
 
      const badgee = await Notification.countDocuments({read: false, receiverId: userr._id})
 
-      await sendNotificationToUser(userr._id, "Bonne nouvelle", "Un container correspondant à une de vos recherche a été trouvé", badgee, {annonceId: String(annoncee._id), "status": `1`, "badge": `${badgee}`});
-
+      await sendNotificationToUser(userr._id, "Bonne nouvelle", "Un conteneur correspondant à une de vos recherches a été trouvé", badgee, {annonceId: String(annoncee._id), "status": `1`, "badge": `${badgee}`});
   }
 
         res.status(201).json({ status: 0 });
@@ -1318,7 +1317,7 @@ exports.toggleActiveStatus = async (req, res) => {
 
       const newNotif = Notification({
         title: "Bonne nouvelle",
-        body: "Un container correspondant à une de vos recherche a été trouvé",
+        body: "Un conteneur correspondant à une de vos recherches a été trouvé",
         date: new Date(),
         read: false,
         view: false,
@@ -1331,16 +1330,15 @@ exports.toggleActiveStatus = async (req, res) => {
       emitSocketNotification(req, userr._id, newNotif);
 
       try {
-        await sendNotificationToUser(userr._id, "Bonne nouvelle", "Un container correspondant à une de vos recherche a été trouvé", badgee, {annonceId: String(announcement._id), "status": `1`, "badge": `${badgee}`});
+        await sendNotificationToUser(userr._id, "Bonne nouvelle", "Un conteneur correspondant à une de vos recherches a été trouvé", badgee, {annonceId: String(announcement._id), "status": `1`, "badge": `${badgee}`});
       } catch (pushErr) {
         console.error("Erreur push notification (recherche):", pushErr.message);
       }
 
   }
       const newNotification = Notification({
-
           title: "Félicitations",
-          body: "L'annonce sur votre conteneur est désormais active et visible pour tous. Retrouvez là dans vos annonces",
+          body: "L'annonce sur votre conteneur est désormais active et visible pour tous. Retrouvez-la dans vos annonces",
           date: new Date(),
           read: false,
           view: false,
@@ -1496,7 +1494,7 @@ exports.toggleActiveStatusWithFile = async (req, res) => {
 
         const newNotif = Notification({
           title: "Bonne nouvelle",
-          body: "Un container correspondant à une de vos recherche a été trouvé",
+          body: "Un conteneur correspondant à une de vos recherches a été trouvé",
           date: new Date(),
           read: false,
           view: false,
@@ -1509,7 +1507,7 @@ exports.toggleActiveStatusWithFile = async (req, res) => {
         emitSocketNotification(req, userr._id, newNotif);
 
         try {
-          await sendNotificationToUser(userr._id, "Bonne nouvelle", "Un container correspondant à une de vos recherche a été trouvé", badgee, { annonceId: String(announcement._id), status: "1", badge: `${badgee}` });
+          await sendNotificationToUser(userr._id, "Bonne nouvelle", "Un conteneur correspondant à une de vos recherches a été trouvé", badgee, { annonceId: String(announcement._id), status: "1", badge: `${badgee}` });
         } catch (pushErr) {
           console.error("Erreur push notification (recherche):", pushErr.message);
         }
@@ -1517,7 +1515,7 @@ exports.toggleActiveStatusWithFile = async (req, res) => {
 
       const newNotification = Notification({
         title: "Félicitations",
-        body: "L'annonce sur votre conteneur est désormais active et visible pour tous. Retrouvez là dans vos annonces",
+        body: "L'annonce sur votre conteneur est désormais active et visible pour tous. Retrouvez-la dans vos annonces",
         date: new Date(),
         read: false,
         view: false,
@@ -1617,7 +1615,7 @@ exports.toggleActiveStatusWithImage = async (req, res) => {
 
         const newNotif = Notification({
           title: "Bonne nouvelle",
-          body: "Un container correspondant à une de vos recherche a été trouvé",
+          body: "Un conteneur correspondant à une de vos recherches a été trouvé",
           date: new Date(),
           read: false,
           view: false,
@@ -1630,7 +1628,7 @@ exports.toggleActiveStatusWithImage = async (req, res) => {
         emitSocketNotification(req, userr._id, newNotif);
 
         try {
-          await sendNotificationToUser(userr._id, "Bonne nouvelle", "Un container correspondant à une de vos recherche a été trouvé", badgee, { annonceId: String(announcement._id), status: "1", badge: `${badgee}` });
+          await sendNotificationToUser(userr._id, "Bonne nouvelle", "Un conteneur correspondant à une de vos recherches a été trouvé", badgee, { annonceId: String(announcement._id), status: "1", badge: `${badgee}` });
         } catch (pushErr) {
           console.error("Erreur push notification (recherche):", pushErr.message);
         }
@@ -1638,7 +1636,7 @@ exports.toggleActiveStatusWithImage = async (req, res) => {
 
       const newNotification = Notification({
         title: "Félicitations",
-        body: "L'annonce sur votre conteneur est désormais active et visible pour tous. Retrouvez là dans vos annonces",
+        body: "L'annonce sur votre conteneur est désormais active et visible pour tous. Retrouvez-la dans vos annonces",
         date: new Date(),
         read: false,
         view: false,

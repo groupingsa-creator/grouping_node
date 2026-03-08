@@ -73,6 +73,9 @@ exports.getNotifications = async (req, res) => {
         },
       },
       {
+        $sort: { "firstMessage.date": -1 },
+      },
+      {
         $limit: 10,
       },
     ];
