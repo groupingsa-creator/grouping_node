@@ -45,6 +45,17 @@ async function sendPushNotification(token, title, body, badge, data = {}) {
           },
         },
       },
+      webpush: {
+        notification: {
+          title,
+          body,
+          icon: "/logo192.png",
+          badge: "/logo192.png",
+        },
+        fcm_options: {
+          link: "https://groupingpro.com",
+        },
+      },
       data,
     },
   };
