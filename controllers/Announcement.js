@@ -815,7 +815,7 @@ exports.addAnnouncement = (req, res) => {
       const newNotif = Notification({
         
         title: "Bonne nouvelle", 
-        body: "Un conteneur correspondant à une de vos recherches a été trouvé", 
+        body: "Une annonce correspondant à votre recherche a été publiée", 
         date: new Date(), 
         read: false, 
         view: false,
