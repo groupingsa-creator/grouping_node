@@ -999,3 +999,91 @@ exports.addUser = async (req, res) => {
     });
   }
 };
+
+
+// ==================== PARRAINAGE / REFERRAL ====================
+
+// Générer un code de parrainage unique (format: GRP-XXXXXX)
+const generateReferralCode = async () => {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // sans I, O, 0, 1 pour éviter confusion
+  let code;
+  let exists = true;
+  while (exists) {
+    let random = '';
+    for (let i = 0; i < 6; i++) {
+      random += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    code = `GRP-${random}`;
+    exists = await User.findOne({ referralCode: code });
+  }
+  return code;
+};
+
+// Récupérer le code de parrainage de l'utilisateur (le générer si nécessaire)
+exports.getReferralCode = async (req, res) => {
+  try {
+    const user = await User.findById(req.auth.userId);
+    if (!user) {
+      return res.status(404).json({ status: 1, message: "Utilisateur introuvable." });
+    }
+
+    // Si l'utilisateur n'a pas encore de code, en générer un
+    if (!user.referralCode) {
+      user.referralCode = await generateReferralCode();
+      await user.save();
+    }
+
+    res.status(200).json({
+      status: 0,
+      referralCode: user.referralCode,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ status: 1, message: "Erreur serveur." });
+  }
+};
+
+// Appliquer un code de parrainage (lier le nouvel utilisateur à son parrain)
+exports.applyReferral = async (req, res) => {
+  try {
+    const { referralCode } = req.body;
+
+    if (!referralCode) {
+      return res.status(400).json({ status: 1, message: "Code de parrainage requis." });
+    }
+
+    // Chercher le parrain
+    const sponsor = await User.findOne({ referralCode: referralCode.trim().toUpperCase() });
+    if (!sponsor) {
+      return res.status(200).json({ status: 1, message: "Code de parrainage invalide." });
+    }
+
+    // Vérifier que l'utilisateur ne se parraine pas lui-même
+    if (String(sponsor._id) === String(req.auth.userId)) {
+      return res.status(200).json({ status: 1, message: "Vous ne pouvez pas utiliser votre propre code." });
+    }
+
+    // Vérifier que l'utilisateur n'a pas déjà un parrain
+    const currentUser = await User.findById(req.auth.userId);
+    if (!currentUser) {
+      return res.status(404).json({ status: 1, message: "Utilisateur introuvable." });
+    }
+
+    if (currentUser.referredBy) {
+      return res.status(200).json({ status: 1, message: "Vous avez déjà un parrain." });
+    }
+
+    // Lier le parrain
+    currentUser.referredBy = sponsor._id;
+    await currentUser.save();
+
+    res.status(200).json({
+      status: 0,
+      message: "Parrainage enregistré avec succès.",
+      sponsor: { name: sponsor.name },
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ status: 1, message: "Erreur serveur." });
+  }
+};

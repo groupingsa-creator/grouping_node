@@ -28,5 +28,7 @@ router.post("/changepassword", auth, userCtrl.changePassword);
 router.post("/gotoemail", userCtrl.goToEmail);
 router.post("/updateemail", userCtrl.updateEmail); 
 router.post("/contactus", auth, userCtrl.contactUs)
+router.get("/getreferralcode", auth, userCtrl.getReferralCode)
+router.post("/applyreferral", auth, userCtrl.applyReferral)
 
 module.exports = router;

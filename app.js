@@ -38,6 +38,27 @@ mongoose.connect(`mongodb+srv://fideleNdzime:${process.env.MONGOPASS}@cluster0.r
       console.log(`Migration fcmToken : ${result.modifiedCount} utilisateur(s) mis a jour.`);
     }
 
+    // Migration: générer des codes de parrainage pour les utilisateurs existants
+    const usersWithoutCode = await User.find({ $or: [{ referralCode: { $exists: false } }, { referralCode: null }] });
+    if (usersWithoutCode.length > 0) {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      const existingCodes = new Set((await User.find({ referralCode: { $ne: null } }).select('referralCode').lean()).map(u => u.referralCode));
+      let migrated = 0;
+      for (const u of usersWithoutCode) {
+        let code;
+        do {
+          let random = '';
+          for (let i = 0; i < 6; i++) random += chars.charAt(Math.floor(Math.random() * chars.length));
+          code = `GRP-${random}`;
+        } while (existingCodes.has(code));
+        existingCodes.add(code);
+        u.referralCode = code;
+        await u.save();
+        migrated++;
+      }
+      if (migrated > 0) console.log(`Migration referralCode : ${migrated} utilisateur(s) mis a jour.`);
+    }
+
     // Nettoyage des URLs cassées (double extension .pdf/.jpg/.png<timestamp>)
     const Announcement = require("./models/Announcement");
     const cleanResult = await Announcement.updateMany(

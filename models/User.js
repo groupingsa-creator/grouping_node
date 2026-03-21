@@ -11,8 +11,10 @@ const userSchema = mongoose.Schema({
   role: { type: String, default: null }, // Attribut 'role' ajouté
   locked: { type: Boolean, default: false }, //propriété permettant de savoir si un user a été bloqué ou pas
   addUserId: { type: String, default: null }, //identifiant de l'administrateur ayant ajouter un autre
-  appleId: {type: String}, 
-  fcmToken: {type: Array, default: []}
+  appleId: {type: String},
+  fcmToken: {type: Array, default: []},
+  referralCode: { type: String, unique: true, sparse: true }, // Code de parrainage unique
+  referredBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null }, // Parrain
 });
 
 module.exports = mongoose.model("User", userSchema);
