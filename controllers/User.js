@@ -2,7 +2,11 @@ const User = require("../models/User");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
-const Contact = require("../models/Contact"); 
+const Contact = require("../models/Contact");
+const Announcement = require("../models/Announcement");
+const Message = require("../models/Messages");
+const Notification = require("../models/Notification");
+const DeviceToken = require("../models/DeviceToken"); 
 
 const transporter = nodemailer.createTransport({
   host: 'mail.groupingpro.com',
@@ -1085,5 +1089,91 @@ exports.applyReferral = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ status: 1, message: "Erreur serveur." });
+  }
+};
+
+// Demande de suppression de compte (Google Play requirement)
+exports.requestDeletion = async (req, res) => {
+  const { email, fullname, reason } = req.body;
+
+  if (!email || !fullname) {
+    return res.status(400).json({ status: 1, message: "Email et nom complet requis." });
+  }
+
+  try {
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
+
+    if (!user) {
+      return res.status(404).json({ status: 1, message: "Aucun compte associé à cet email." });
+    }
+
+    // Supprimer les annonces de l'utilisateur
+    await Announcement.deleteMany({ userId: user._id.toString() });
+
+    // Supprimer les messages envoyes et recus
+    await Message.deleteMany({
+      $or: [
+        { user1Id: user._id.toString() },
+        { user2Id: user._id.toString() }
+      ]
+    });
+
+    // Supprimer les notifications
+    await Notification.deleteMany({
+      $or: [
+        { receiverId: user._id.toString() },
+        { authorId: user._id.toString() }
+      ]
+    });
+
+    // Supprimer les device tokens
+    await DeviceToken.deleteMany({ userId: user._id.toString() });
+
+    // Supprimer le compte utilisateur
+    await User.findByIdAndDelete(user._id);
+
+    // Envoyer un email de confirmation a l'utilisateur
+    await transporter.sendMail({
+      from: '"Grouping" <noreply@groupingpro.com>',
+      to: email,
+      subject: "Confirmation de suppression de votre compte Grouping",
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h2 style="color: #1a1a2e;">Suppression de compte confirmée</h2>
+          <p>Bonjour ${fullname},</p>
+          <p>Nous vous confirmons que votre compte Grouping associé à l'adresse <strong>${email}</strong> a été supprimé avec succès.</p>
+          <p>Les données suivantes ont été définitivement supprimées :</p>
+          <ul>
+            <li>Votre profil et informations personnelles</li>
+            <li>Vos annonces (conteneurs et kilos)</li>
+            <li>Vos messages et conversations</li>
+            <li>Vos notifications</li>
+            <li>Votre code de parrainage</li>
+          </ul>
+          <p style="color: #888; font-size: 13px; margin-top: 30px;">Si vous n'êtes pas à l'origine de cette demande, veuillez nous contacter immédiatement à contacts@groupingpro.com</p>
+          <p>Cordialement,<br><strong>L'équipe Grouping</strong></p>
+        </div>
+      `
+    });
+
+    // Notifier l'admin
+    await transporter.sendMail({
+      from: '"Grouping" <noreply@groupingpro.com>',
+      to: "contacts@groupingpro.com",
+      subject: `Suppression de compte - ${fullname}`,
+      html: `
+        <p><strong>Demande de suppression traitée automatiquement</strong></p>
+        <p>Utilisateur : ${fullname}</p>
+        <p>Email : ${email}</p>
+        <p>Motif : ${reason || "Non spécifié"}</p>
+        <p>Date : ${new Date().toLocaleString("fr-FR")}</p>
+      `
+    });
+
+    res.status(200).json({ status: 0, message: "Compte supprimé avec succès." });
+
+  } catch (err) {
+    console.error("Erreur suppression compte:", err);
+    res.status(500).json({ status: 1, message: "Erreur lors de la suppression du compte." });
   }
 };

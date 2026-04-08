@@ -30,5 +30,6 @@ router.post("/updateemail", userCtrl.updateEmail);
 router.post("/contactus", auth, userCtrl.contactUs)
 router.get("/getreferralcode", auth, userCtrl.getReferralCode)
 router.post("/applyreferral", auth, userCtrl.applyReferral)
+router.post("/request-deletion", userCtrl.requestDeletion)
 
 module.exports = router;
