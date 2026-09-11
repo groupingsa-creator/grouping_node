@@ -26,10 +26,12 @@ router.post("/changename", auth, userCtrl.changeName);
 router.post("/changephoto", auth, handleUpload, userCtrl.changePhoto);
 router.post("/changepassword", auth, userCtrl.changePassword);
 router.post("/gotoemail", userCtrl.goToEmail);
-router.post("/updateemail", userCtrl.updateEmail); 
+router.post("/resetpassword", userCtrl.resetPassword);
 router.post("/contactus", auth, userCtrl.contactUs)
 router.get("/getreferralcode", auth, userCtrl.getReferralCode)
 router.post("/applyreferral", auth, userCtrl.applyReferral)
+router.post("/deleteaccount", auth, userCtrl.deleteMyAccount)
 router.post("/request-deletion", userCtrl.requestDeletion)
+router.post("/confirm-deletion", userCtrl.confirmDeletion)
 
 module.exports = router;

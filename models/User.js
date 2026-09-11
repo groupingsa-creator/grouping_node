@@ -15,6 +15,12 @@ const userSchema = mongoose.Schema({
   fcmToken: {type: Array, default: []},
   referralCode: { type: String, unique: true, sparse: true }, // Code de parrainage unique
   referredBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null }, // Parrain
+  deletionCode: { type: String, default: null }, // Code de confirmation de suppression de compte
+  deletionCodeExpires: { type: Date, default: null },
+  resetCode: { type: String, default: null }, // Code de reinitialisation du mot de passe
+  resetCodeExpires: { type: Date, default: null },
+  resetAttempts: { type: Number, default: 0 },
+  deletionAttempts: { type: Number, default: 0 },
 });
 
 module.exports = mongoose.model("User", userSchema);

@@ -2,6 +2,11 @@ const User = require("../models/User");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
+const crypto = require("crypto");
+
+// Au-dela de ce nombre d'essais rates, le code a 6 chiffres est invalide :
+// sans cela il serait brute-forcable pendant toute sa duree de validite.
+const MAX_CODE_ATTEMPTS = 5;
 const Contact = require("../models/Contact");
 const Announcement = require("../models/Announcement");
 const Message = require("../models/Messages");
@@ -13,8 +18,8 @@ const transporter = nodemailer.createTransport({
   secure: true, 
   port: 465,
   auth: {
-    user: 'noreply@groupingpro.com',         // Remplace par ton Gmail
-    pass: 'wS6-99$EexrqjcM'  // Active le mot de passe d’application si 2FA est activée
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASSWORD
   }, 
   logger: true,
   debug: true,
@@ -62,95 +67,118 @@ const transporter = nodemailer.createTransport({
 
 }
 
-const sendHttpUrl = async (email, name) => {
-  
-  const encodedEmail = encodeURIComponent(email);
-
-  console.log("le code email", encodedEmail); 
-  
-
+const sendResetCode = async (email, name, code) => {
   try {
-
-     transporter.verify((err, success) => {
-      if (err) console.error("❌ SMTP verify error:", err);
-      else console.log("✅ SMTP server is ready:", success);
-    });
-
-    const info = await transporter.sendMail({
-      from: `"Grouping Reset Password" <noreply@groupingpro.com>`,
+    await transporter.sendMail({
+      from: `"Grouping" <noreply@groupingpro.com>`,
       to: email,
-      subject: "Cliquez sur le lien",
-      html: `<p>Bonjour <b>${name}</b>,</p>
-             <p>Cliquez sur le lien ci-dessous pour réinitialiser votre mot de passe :</p>
-             <p><a href="https://grouping-pass.vercel.app/${encodedEmail}">Réinitialiser</a></p>`
+      subject: "Code de réinitialisation de votre mot de passe Grouping",
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h2 style="color: #1a1a2e;">Réinitialisation de votre mot de passe</h2>
+          <p>Bonjour <b>${name || ""}</b>,</p>
+          <p>Saisissez ce code dans l'application Grouping pour choisir un nouveau mot de passe :</p>
+          <p style="font-size: 28px; letter-spacing: 6px; font-weight: bold; color: #1a1a2e;">${code}</p>
+          <p>Ce code est valable 30 minutes.</p>
+          <p style="color: #888; font-size: 13px; margin-top: 30px;">Si vous n'êtes pas à l'origine de cette demande, ignorez cet e-mail : votre mot de passe reste inchangé.</p>
+          <p>Cordialement,<br><strong>L'équipe Grouping</strong></p>
+        </div>
+      `
     });
-  
-    console.log("✅ info.messageId:", info.messageId);
-    console.log("✅ accepted:", info.accepted);
-    console.log("⚠️ rejected:", info.rejected);
-    console.log("⚠️ pending:", info.pending);
-    console.log("ℹ️ response:", info.response);
   } catch (err) {
-    console.error("❌ sendMail error:", err);
+    console.error("sendResetCode:", err);
   }
-  
-}
+};
 
 
 exports.goToEmail = async (req, res) => {
-  
-      try{
-        
-        const  user = await User.findOne({email: req.body.email})
-        
-        if(user){
-          
-            await sendHttpUrl(req.body.email, user.name); 
-        
-            res.status(200).json({status: 0});
-          
-        }else{
-          
-          res.status(200).json({status: 1})
+  const email = (req.body.email || "").toLowerCase().trim();
+
+  if (!email) {
+    return res.status(400).json({ status: 1, message: "Adresse e-mail requise." });
+  }
+
+  // Reponse volontairement identique dans tous les cas : on ne revele pas
+  // si une adresse correspond a un compte.
+  const genericResponse = { status: 0 };
+
+  try {
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(200).json(genericResponse);
+    }
+
+    const code = String(crypto.randomInt(0, 1000000)).padStart(6, "0");
+
+    await User.updateOne(
+      { _id: user._id },
+      { $set: { resetCode: code, resetCodeExpires: new Date(Date.now() + 30 * 60 * 1000), resetAttempts: 0 } }
+    );
+
+    await sendResetCode(user.email, user.name, code);
+
+    res.status(200).json(genericResponse);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ status: 1, message: "Erreur lors de l'envoi du code." });
+  }
+};
+
+// Reinitialisation effective : exige le code recu par e-mail.
+exports.resetPassword = async (req, res) => {
+  const email = (req.body.email || "").toLowerCase().trim();
+  const { code, password } = req.body;
+
+  if (!email || !code || !password) {
+    return res.status(400).json({ status: 1, message: "Email, code et nouveau mot de passe requis." });
+  }
+
+  if (String(password).length < 6) {
+    return res.status(400).json({ status: 1, message: "Le mot de passe doit contenir au moins 6 caractères." });
+  }
+
+  try {
+    const user = await User.findOne({ email });
+
+    const resetCodeValid =
+      user &&
+      user.resetCode &&
+      user.resetCode === String(code).trim() &&
+      user.resetCodeExpires &&
+      user.resetCodeExpires >= new Date();
+
+    if (!resetCodeValid) {
+      if (user && user.resetCode) {
+        const attempts = (user.resetAttempts || 0) + 1;
+
+        if (attempts >= MAX_CODE_ATTEMPTS) {
+          // Trop d'essais : on invalide le code, il faut en redemander un.
+          await User.updateOne(
+            { _id: user._id },
+            { $set: { resetCode: null, resetCodeExpires: null, resetAttempts: 0 } }
+          );
+        } else {
+          await User.updateOne({ _id: user._id }, { $set: { resetAttempts: attempts } });
         }
-          
-
-        
-      }catch(err){
-        
-          console.log(err); 
-          res.status(505).json({err  })
-      }
-}
-
-exports.updateEmail = async (req, res) => {
-  
-       try{
-          
-          const hash = await bcrypt.hash(req.body.password, 10); 
-         
-         const user = await User.findOne({email: req.body.email}); 
-         
-         if(user){
-           
-               await User.updateOne({email: req.body.email}, {$set: {password: hash}}); 
-           
-          res.status(201).json({status: 0})
-        
-           
-         }else{
-           
-                    res.status(201).json({status: 1})
-         }
-           
-      
-      }catch(err){
-        
-          console.log(err); 
-          res.status(505).json({err })
       }
 
-}
+      return res.status(400).json({ status: 1, message: "Code invalide ou expiré." });
+    }
+
+    const hash = await bcrypt.hash(password, 10);
+
+    await User.updateOne(
+      { _id: user._id },
+      { $set: { password: hash, resetCode: null, resetCodeExpires: null, resetAttempts: 0 } }
+    );
+
+    res.status(200).json({ status: 0, message: "Mot de passe mis à jour." });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ status: 1, message: "Erreur lors de la réinitialisation." });
+  }
+};
 
 exports.changeName = async (req, res) => {
   
@@ -274,13 +302,13 @@ const sendEmail = (email) => {
     service: "gmail",
     secure: true,
     auth: {
-      user: "groupingsa@gmail.com",
-      pass: "Grouping@2024",
+      user: process.env.GMAIL_USER,
+      pass: process.env.GMAIL_PASSWORD,
     },
   });
 
   const mailOptions = {
-    from: "groupingsa@gmail.com",
+    from: process.env.GMAIL_USER,
     to: email,
     subject: "Grouping: Validation d'adresse email",
     html: `
@@ -1093,85 +1121,179 @@ exports.applyReferral = async (req, res) => {
 };
 
 // Demande de suppression de compte (Google Play requirement)
+// --- Suppression de compte -------------------------------------------------
+
+// Supprime l'utilisateur et toutes les donnees qui lui sont rattachees.
+const purgeUserData = async (user) => {
+  const userId = user._id.toString();
+
+  await Announcement.deleteMany({ userId });
+  await Message.deleteMany({ $or: [{ user1Id: userId }, { user2Id: userId }] });
+  await Notification.deleteMany({ $or: [{ receiverId: userId }, { authorId: userId }] });
+  await DeviceToken.deleteMany({ userId });
+  await User.updateMany({ referredBy: user._id }, { $set: { referredBy: null } });
+  await User.findByIdAndDelete(user._id);
+};
+
+const sendDeletionDoneEmails = async (email, fullname, reason) => {
+  await transporter.sendMail({
+    from: '"Grouping" <noreply@groupingpro.com>',
+    to: email,
+    subject: "Confirmation de suppression de votre compte Grouping",
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #1a1a2e;">Suppression de compte confirmée</h2>
+        <p>Bonjour ${fullname},</p>
+        <p>Nous vous confirmons que votre compte Grouping associé à l'adresse <strong>${email}</strong> a été supprimé avec succès.</p>
+        <p>Les données suivantes ont été définitivement supprimées :</p>
+        <ul>
+          <li>Votre profil et informations personnelles</li>
+          <li>Vos annonces (conteneurs et kilos)</li>
+          <li>Vos messages et conversations</li>
+          <li>Vos notifications</li>
+          <li>Votre code de parrainage</li>
+        </ul>
+        <p style="color: #888; font-size: 13px; margin-top: 30px;">Si vous n'êtes pas à l'origine de cette demande, veuillez nous contacter immédiatement à contacts@groupingpro.com</p>
+        <p>Cordialement,<br><strong>L'équipe Grouping</strong></p>
+      </div>
+    `
+  });
+
+  await transporter.sendMail({
+    from: '"Grouping" <noreply@groupingpro.com>',
+    to: "contacts@groupingpro.com",
+    subject: `Suppression de compte - ${fullname}`,
+    html: `
+      <p><strong>Demande de suppression traitée automatiquement</strong></p>
+      <p>Utilisateur : ${fullname}</p>
+      <p>Email : ${email}</p>
+      <p>Motif : ${reason || "Non spécifié"}</p>
+      <p>Date : ${new Date().toLocaleString("fr-FR")}</p>
+    `
+  });
+};
+
+// Suppression depuis l'application : l'utilisateur est deja authentifie.
+exports.deleteMyAccount = async (req, res) => {
+  try {
+    const user = await User.findById(req.auth.userId);
+
+    if (!user) {
+      return res.status(404).json({ status: 1, message: "Compte introuvable." });
+    }
+
+    const { email, name } = user;
+
+    await purgeUserData(user);
+
+    if (email) {
+      sendDeletionDoneEmails(email, name || email, req.body.reason)
+        .catch((err) => console.error("Email suppression compte:", err));
+    }
+
+    res.status(200).json({ status: 0, message: "Compte supprimé avec succès." });
+  } catch (err) {
+    console.error("Erreur suppression compte:", err);
+    res.status(500).json({ status: 1, message: "Erreur lors de la suppression du compte." });
+  }
+};
+
+// Etape 1 (formulaire web) : on envoie un code de confirmation a l'adresse du compte.
+// La reponse est volontairement identique que le compte existe ou non, pour ne pas
+// permettre de tester si une adresse est inscrite.
 exports.requestDeletion = async (req, res) => {
-  const { email, fullname, reason } = req.body;
+  const { email, fullname } = req.body;
 
   if (!email || !fullname) {
     return res.status(400).json({ status: 1, message: "Email et nom complet requis." });
   }
 
+  const genericResponse = {
+    status: 0,
+    message: "Si un compte est associé à cette adresse, un code de confirmation vient d'y être envoyé."
+  };
+
   try {
     const user = await User.findOne({ email: email.toLowerCase().trim() });
 
     if (!user) {
-      return res.status(404).json({ status: 1, message: "Aucun compte associé à cet email." });
+      return res.status(200).json(genericResponse);
     }
 
-    // Supprimer les annonces de l'utilisateur
-    await Announcement.deleteMany({ userId: user._id.toString() });
+    const code = String(crypto.randomInt(0, 1000000)).padStart(6, "0");
 
-    // Supprimer les messages envoyes et recus
-    await Message.deleteMany({
-      $or: [
-        { user1Id: user._id.toString() },
-        { user2Id: user._id.toString() }
-      ]
-    });
+    await User.updateOne(
+      { _id: user._id },
+      { $set: { deletionCode: code, deletionCodeExpires: new Date(Date.now() + 30 * 60 * 1000), deletionAttempts: 0 } }
+    );
 
-    // Supprimer les notifications
-    await Notification.deleteMany({
-      $or: [
-        { receiverId: user._id.toString() },
-        { authorId: user._id.toString() }
-      ]
-    });
-
-    // Supprimer les device tokens
-    await DeviceToken.deleteMany({ userId: user._id.toString() });
-
-    // Supprimer le compte utilisateur
-    await User.findByIdAndDelete(user._id);
-
-    // Envoyer un email de confirmation a l'utilisateur
     await transporter.sendMail({
       from: '"Grouping" <noreply@groupingpro.com>',
-      to: email,
-      subject: "Confirmation de suppression de votre compte Grouping",
+      to: user.email,
+      subject: "Code de confirmation - suppression de votre compte Grouping",
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <h2 style="color: #1a1a2e;">Suppression de compte confirmée</h2>
-          <p>Bonjour ${fullname},</p>
-          <p>Nous vous confirmons que votre compte Grouping associé à l'adresse <strong>${email}</strong> a été supprimé avec succès.</p>
-          <p>Les données suivantes ont été définitivement supprimées :</p>
-          <ul>
-            <li>Votre profil et informations personnelles</li>
-            <li>Vos annonces (conteneurs et kilos)</li>
-            <li>Vos messages et conversations</li>
-            <li>Vos notifications</li>
-            <li>Votre code de parrainage</li>
-          </ul>
-          <p style="color: #888; font-size: 13px; margin-top: 30px;">Si vous n'êtes pas à l'origine de cette demande, veuillez nous contacter immédiatement à contacts@groupingpro.com</p>
+          <h2 style="color: #1a1a2e;">Confirmez la suppression de votre compte</h2>
+          <p>Bonjour ${user.name || fullname},</p>
+          <p>Une demande de suppression de votre compte Grouping a été effectuée. Pour la confirmer, saisissez ce code :</p>
+          <p style="font-size: 28px; letter-spacing: 6px; font-weight: bold; color: #1a1a2e;">${code}</p>
+          <p>Ce code est valable 30 minutes.</p>
+          <p style="color: #888; font-size: 13px; margin-top: 30px;">Si vous n'êtes pas à l'origine de cette demande, ignorez cet e-mail : aucune donnée ne sera supprimée.</p>
           <p>Cordialement,<br><strong>L'équipe Grouping</strong></p>
         </div>
       `
     });
 
-    // Notifier l'admin
-    await transporter.sendMail({
-      from: '"Grouping" <noreply@groupingpro.com>',
-      to: "contacts@groupingpro.com",
-      subject: `Suppression de compte - ${fullname}`,
-      html: `
-        <p><strong>Demande de suppression traitée automatiquement</strong></p>
-        <p>Utilisateur : ${fullname}</p>
-        <p>Email : ${email}</p>
-        <p>Motif : ${reason || "Non spécifié"}</p>
-        <p>Date : ${new Date().toLocaleString("fr-FR")}</p>
-      `
-    });
+    res.status(200).json(genericResponse);
+  } catch (err) {
+    console.error("Erreur demande de suppression:", err);
+    res.status(500).json({ status: 1, message: "Erreur lors de la demande de suppression." });
+  }
+};
+
+// Etape 2 (formulaire web) : verification du code puis suppression effective.
+exports.confirmDeletion = async (req, res) => {
+  const { email, code, reason } = req.body;
+
+  if (!email || !code) {
+    return res.status(400).json({ status: 1, message: "Email et code de confirmation requis." });
+  }
+
+  try {
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
+
+    const deletionCodeValid =
+      user &&
+      user.deletionCode &&
+      user.deletionCode === String(code).trim() &&
+      user.deletionCodeExpires &&
+      user.deletionCodeExpires >= new Date();
+
+    if (!deletionCodeValid) {
+      if (user && user.deletionCode) {
+        const attempts = (user.deletionAttempts || 0) + 1;
+
+        if (attempts >= MAX_CODE_ATTEMPTS) {
+          await User.updateOne(
+            { _id: user._id },
+            { $set: { deletionCode: null, deletionCodeExpires: null, deletionAttempts: 0 } }
+          );
+        } else {
+          await User.updateOne({ _id: user._id }, { $set: { deletionAttempts: attempts } });
+        }
+      }
+
+      return res.status(400).json({ status: 1, message: "Code invalide ou expiré." });
+    }
+
+    const { email: userEmail, name } = user;
+
+    await purgeUserData(user);
+
+    sendDeletionDoneEmails(userEmail, name || email, reason)
+      .catch((err) => console.error("Email suppression compte:", err));
 
     res.status(200).json({ status: 0, message: "Compte supprimé avec succès." });
-
   } catch (err) {
     console.error("Erreur suppression compte:", err);
     res.status(500).json({ status: 1, message: "Erreur lors de la suppression du compte." });
